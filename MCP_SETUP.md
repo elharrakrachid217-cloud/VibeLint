@@ -1,84 +1,32 @@
-# VibeGuard MCP — Setup Guide
+# Install VibeGuard
 
-VibeGuard works with any IDE or AI agent that supports the **Model Context Protocol (MCP)**. Below are setup instructions for common clients.
+VibeGuard is an MCP server that scans AI-generated code for security issues before it reaches your files.
 
----
-
-## Cursor
-
-### Method 1: Project config (recommended)
-
-1. **Open the correct folder in Cursor**
-   - File → Open Folder
-   - Choose: `vibeguard_starter` (the parent folder that contains the `vibeguard` subfolder)
-   - Cursor looks for `.cursor/mcp.json` in the folder you open.
-
-2. **Reload so Cursor sees the config**
-   - `Ctrl+Shift+P` → run **"Developer: Reload Window"**
-   - Or close Cursor and open the folder again.
-
-3. **Check MCP**
-   - `Ctrl+Shift+P` → **"Cursor: Open MCP Servers"** (or **Settings → Cursor Settings → Features → MCP**)
-   - You should see **vibeguard** in the list. Toggle it on if needed.
-
-### Method 2: Cursor Settings UI
-
-1. Open **Cursor Settings** → **Features** (or **Tools & MCP**) → **MCP**.
-2. Click **"+ Add new MCP server"**.
-3. Enter:
-   - **Name:** `vibeguard`
-   - **Type:** Command
-   - **Command:** `python`
-   - **Arguments:** `server.py`
-   - **Working directory (cwd):** absolute path to the `vibeguard` folder
-4. Save and restart Cursor.
-
-### Method 3: Global config (all projects)
-
-Edit `C:\Users\<you>\.cursor\mcp.json` (or `%APPDATA%\Cursor\mcp.json`) and add the `vibeguard` server block. Restart Cursor.
+> **Easiest way to install:** Copy the content of this file and give it to your AI agent (Cursor, Claude Code, Windsurf, Antigravity, etc.) with the message: *"Install this MCP for me."* It will handle everything below.
 
 ---
 
-## Windsurf
+## Before you start
 
-1. Create or edit `.windsurf/mcp.json` in your project root (or the global config at `~/.codeium/windsurf/mcp_config.json`).
-2. Add:
-   ```json
-   {
-     "mcpServers": {
-       "vibeguard": {
-         "command": "python",
-         "args": ["server.py"],
-         "cwd": "/absolute/path/to/vibeguard"
-       }
-     }
-   }
-   ```
-3. Restart Windsurf.
+You need **Python 3.8 or newer** installed on your machine. To check, open a terminal and run:
 
----
+```
+python --version
+```
 
-## Claude Desktop
+If you don't have Python, download it from [python.org](https://www.python.org/downloads/).
 
-1. Open the config file:
-   - **Mac:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-2. Add the `vibeguard` server block (same JSON as above).
-3. Restart Claude Desktop.
+## Step 1 — Clone and install
 
----
+```
+git clone https://github.com/elharrakrachid217-cloud/vibeguard.git
+cd vibeguard
+pip install -r requirements.txt
+```
 
-## VS Code (GitHub Copilot)
+## Step 2 — Add to your MCP config
 
-1. Create or edit `.vscode/mcp.json` in your project root.
-2. Add the same `mcpServers.vibeguard` JSON block.
-3. Reload VS Code.
-
----
-
-## Any other MCP-compatible client
-
-The pattern is always the same:
+Open your IDE's MCP configuration file and add this:
 
 ```json
 {
@@ -92,22 +40,20 @@ The pattern is always the same:
 }
 ```
 
-Point `cwd` to the folder containing `server.py`, add this to your client's MCP config, and restart.
+Replace `/absolute/path/to/vibeguard` with the real path to the folder you just cloned.
+
+## Step 3 — Restart your IDE
+
+Reload or restart your IDE so it picks up the new MCP server. Done.
 
 ---
 
-## Troubleshooting
+## Verify (optional)
 
-- **Python on PATH**
-  Run `python --version` in a new terminal. If it fails, use the full path to `python.exe` in the `command` field.
+Run this inside the `vibeguard` folder:
 
-- **Paths with spaces**
-  If your path contains spaces, make sure the `cwd` value is properly quoted in JSON (e.g. `"C:\\Users\\me\\my project\\vibeguard"`).
+```
+python server.py
+```
 
-- **Verify the server can start**
-  Run `python server.py` from the `vibeguard` folder. You should see:
-  ```
-  🛡️  VibeGuard MCP Server starting...
-     Waiting for MCP client to connect...
-  ```
-  If that works, the problem is in your IDE's MCP config — double-check the path.
+If you see `VibeGuard MCP Server starting...` — everything is working. You can close it; your IDE starts the server on its own.
