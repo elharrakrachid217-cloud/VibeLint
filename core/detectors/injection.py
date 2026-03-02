@@ -49,14 +49,32 @@ class InjectionDetector(BaseDetector):
         ),
         # Raw HTML rendering without escaping (XSS)
         (
-            r'(?i)(innerHTML|outerHTML|document\.write)\s*=.*\+',
+            r'(?i)(innerHTML|outerHTML)\s*=.*\+',
             "User-controlled data inserted directly into DOM. Sanitize first to prevent XSS.",
             "high"
         ),
-        # dangerouslySetInnerHTML in React
+        # JS/TS: eval() with variable input (code injection)
         (
-            r'dangerouslySetInnerHTML',
-            "dangerouslySetInnerHTML used. Ensure content is sanitized with DOMPurify before rendering.",
+            r'eval\s*\(\s*[a-zA-Z_]',
+            "eval() called with variable input allows arbitrary code execution. Never use eval() with dynamic data.",
+            "critical"
+        ),
+        # JS/TS: document.write() with concatenation or template literals
+        (
+            r'document\.write\s*\(.*[\+\$]',
+            "document.write() with dynamic data enables XSS. Use textContent or DOM APIs with proper escaping.",
+            "high"
+        ),
+        # dangerouslySetInnerHTML in React without DOMPurify
+        (
+            r'dangerouslySetInnerHTML(?!.*DOMPurify)',
+            "dangerouslySetInnerHTML used without DOMPurify. Sanitize with DOMPurify.sanitize() before rendering.",
+            "high"
+        ),
+        # JS/TS: Prototype pollution via dynamic property assignment
+        (
+            r'(?i)\w+\[\s*(?:req|user|input|param|query|body|data)\w*\s*\]\s*=',
+            "Dynamic property assignment with user-controlled key enables prototype pollution.",
             "high"
         ),
     ]
@@ -78,23 +96,46 @@ class InjectionDetector(BaseDetector):
                         "line": line_num,
                         "description": description,
                         "offending_line": line.strip(),
-                        "fix_hint": self._get_fix_hint(language)
+                        "fix_hint": self._get_fix_hint(language, description)
                     })
                     break
 
         return violations
 
-    def _get_fix_hint(self, language: str) -> str:
+    def _get_fix_hint(self, language: str, description: str = "") -> str:
+        if language in ("javascript", "typescript"):
+            if "eval()" in description:
+                return (
+                    "Remove eval() entirely. Use JSON.parse() for data, "
+                    "or Function constructor with validated input if dynamic code is absolutely required. "
+                    "Store configuration in process.env instead of evaluating dynamic strings."
+                )
+            if "document.write" in description:
+                return (
+                    "Replace document.write() with safe DOM APIs: "
+                    "element.textContent for text, or createElement/appendChild for structure. "
+                    "Never insert unsanitized user data into the DOM."
+                )
+            if "dangerouslySetInnerHTML" in description:
+                return (
+                    "Sanitize content before rendering: npm install dompurify, "
+                    "then use dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}."
+                )
+            if "prototype pollution" in description.lower() or "dynamic property" in description.lower():
+                return (
+                    "Validate property keys against an allowlist before assignment. "
+                    "Use Object.create(null) for lookup objects, or Map instead of plain objects. "
+                    "Never use user input directly as an object key."
+                )
+            return (
+                "Use an ORM like Prisma or Drizzle instead of raw SQL. "
+                "If using raw queries: db.query('SELECT * FROM users WHERE id = $1', [userId]). "
+                "For XSS: use DOMPurify — npm install dompurify."
+            )
         if language == "python":
             return (
                 "Replace string-built queries with parameterized queries. "
                 "SQLAlchemy ORM example: db.query(User).filter(User.id == user_id). "
                 "Raw psycopg2 example: cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))"
-            )
-        elif language in ("javascript", "typescript"):
-            return (
-                "Use an ORM like Prisma or Drizzle instead of raw SQL. "
-                "If using raw queries: db.query('SELECT * FROM users WHERE id = $1', [userId]). "
-                "For XSS: use DOMPurify — npm install dompurify."
             )
         return "Never build queries or HTML by concatenating user input. Use parameterized queries and output encoding."

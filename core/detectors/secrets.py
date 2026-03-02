@@ -73,6 +73,24 @@ class SecretsDetector(BaseDetector):
             "Hard-coded Stripe API key detected",
             "critical"
         ),
+        # JS/TS: process.env fallback with hardcoded secret (defeats env vars)
+        (
+            r'(?i)process\.env\.\w+\s*\|\|\s*["\'][^"\']{8,}["\']',
+            "Hardcoded fallback for process.env defeats the purpose of environment variables",
+            "high"
+        ),
+        # Next.js: NEXTAUTH_SECRET or NEXTAUTH_URL hardcoded
+        (
+            r'(?i)(NEXTAUTH_SECRET|NEXTAUTH_URL)\s*[:=]\s*["\'][^"\']{8,}["\']',
+            "Hard-coded Next.js auth secret detected. Move to .env.local",
+            "critical"
+        ),
+        # Next.js: NEXT_PUBLIC_ variables hardcoded instead of .env.local
+        (
+            r'(?i)NEXT_PUBLIC_\w+\s*[:=]\s*["\'][^"\']{8,}["\']',
+            "NEXT_PUBLIC_ variable hardcoded instead of loading from .env.local",
+            "high"
+        ),
     ]
 
     def detect(self, code: str, language: str) -> list[dict]:

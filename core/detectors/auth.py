@@ -60,6 +60,24 @@ class AuthDetector(BaseDetector):
             "Potential SQL injection in authentication query. Use parameterized queries.",
             "critical"
         ),
+        # JS/TS: localStorage storing JWT tokens (XSS-accessible)
+        (
+            r'(?i)localStorage\.(setItem|getItem)\s*\(\s*["\'](?:token|jwt|auth[_-]?token|access[_-]?token|session[_-]?token|id[_-]?token)["\']',
+            "Storing authentication tokens in localStorage is insecure. Use httpOnly cookies instead.",
+            "high"
+        ),
+        # JS/TS: fetch() with credentials in URL parameters
+        (
+            r'(?i)fetch\s*\(.*[\?&](token|key|api_key|apiKey|secret|password|auth)=',
+            "Credentials passed as URL parameters in fetch(). Use Authorization header instead.",
+            "high"
+        ),
+        # JS/TS: NextAuth debug mode enabled (information leakage in production)
+        (
+            r'(?i)NextAuth\s*\(.*debug\s*:\s*true',
+            "NextAuth debug mode enabled. Disable in production to prevent information leakage.",
+            "high"
+        ),
     ]
 
     def detect(self, code: str, language: str) -> list[dict]:
@@ -79,23 +97,40 @@ class AuthDetector(BaseDetector):
                         "line": line_num,
                         "description": description,
                         "offending_line": line.strip(),
-                        "fix_hint": self._get_fix_hint(language)
+                        "fix_hint": self._get_fix_hint(language, description)
                     })
                     break
 
         return violations
 
-    def _get_fix_hint(self, language: str) -> str:
+    def _get_fix_hint(self, language: str, description: str = "") -> str:
+        if language in ("javascript", "typescript"):
+            if "localStorage" in description:
+                return (
+                    "Never store JWTs in localStorage — it is vulnerable to XSS attacks. "
+                    "Use httpOnly cookies instead. With Next.js, use next-auth session handling. "
+                    "Store secrets server-side and reference them via process.env."
+                )
+            if "URL parameters" in description:
+                return (
+                    "Never pass tokens as URL parameters — they appear in server logs and browser history. "
+                    "Use the Authorization header: fetch(url, { headers: { Authorization: `Bearer ${token}` } }). "
+                    "Keep secrets in process.env on the server side."
+                )
+            if "NextAuth" in description and "debug" in description:
+                return (
+                    "Disable debug mode in production. Set NEXTAUTH_SECRET in .env.local via process.env.NEXTAUTH_SECRET "
+                    "and never hardcode auth configuration values."
+                )
+            return (
+                "For password hashing: use 'npm install bcryptjs'. "
+                "For JWT: use 'npm install jsonwebtoken' with a secret from process.env. "
+                "Consider using NextAuth.js or Passport.js instead of custom auth."
+            )
         if language == "python":
             return (
                 "For password hashing: use 'pip install bcrypt' and bcrypt.hashpw(). "
                 "For JWT: use python-jose with a strong HS256 secret from environment variables. "
                 "Never implement auth logic from scratch."
-            )
-        elif language in ("javascript", "typescript"):
-            return (
-                "For password hashing: use 'npm install bcryptjs'. "
-                "For JWT: use 'npm install jsonwebtoken' with a secret from process.env. "
-                "Consider using NextAuth.js or Passport.js instead of custom auth."
             )
         return "Use a battle-tested auth library. Never implement password hashing or JWT handling from scratch."
