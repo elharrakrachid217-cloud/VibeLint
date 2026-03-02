@@ -103,6 +103,64 @@ class AuthDetector(BaseDetector):
 
         return violations
 
+    _AUTH_FIX_HINTS: dict[str, str] = {
+        "python": (
+            "For password hashing: use 'pip install bcrypt' and bcrypt.hashpw(). "
+            "For JWT: use python-jose with a strong HS256 secret from environment variables. "
+            "Never implement auth logic from scratch."
+        ),
+        "javascript": (
+            "For password hashing: use 'npm install bcryptjs'. "
+            "For JWT: use 'npm install jsonwebtoken' with a secret from process.env. "
+            "Consider using NextAuth.js or Passport.js instead of custom auth."
+        ),
+        "typescript": (
+            "For password hashing: use 'npm install bcryptjs'. "
+            "For JWT: use 'npm install jsonwebtoken' with a secret from process.env. "
+            "Consider using NextAuth.js or Passport.js instead of custom auth."
+        ),
+        "java": (
+            "For password hashing: use BCrypt from Spring Security or jBCrypt. "
+            "For JWT: use jjwt or nimbus-jose-jwt with secrets from environment variables. "
+            "Consider Spring Security for a complete auth solution."
+        ),
+        "go": (
+            "For password hashing: use golang.org/x/crypto/bcrypt. "
+            "For JWT: use github.com/golang-jwt/jwt with secrets from os.Getenv(). "
+            "Never roll your own authentication."
+        ),
+        "ruby": (
+            "For password hashing: use bcrypt gem (has_secure_password in Rails). "
+            "For JWT: use ruby-jwt gem with secrets from ENV. "
+            "Consider Devise for a complete auth solution."
+        ),
+        "php": (
+            "For password hashing: use password_hash() with PASSWORD_BCRYPT. "
+            "For JWT: use firebase/php-jwt with secrets from getenv(). "
+            "Consider Laravel Sanctum or Passport for complete auth."
+        ),
+        "rust": (
+            "For password hashing: use the bcrypt or argon2 crate. "
+            "For JWT: use jsonwebtoken crate with secrets from std::env::var(). "
+            "Never implement auth primitives from scratch."
+        ),
+        "csharp": (
+            "For password hashing: use BCrypt.Net-Next or ASP.NET Identity. "
+            "For JWT: use Microsoft.IdentityModel.Tokens with secrets from IConfiguration. "
+            "Consider ASP.NET Identity for a complete auth solution."
+        ),
+        "kotlin": (
+            "For password hashing: use BCrypt from Spring Security or jBCrypt. "
+            "For JWT: use jjwt with secrets from System.getenv(). "
+            "Consider Spring Security for a complete auth solution."
+        ),
+        "swift": (
+            "For password hashing: use a bcrypt implementation like Vapor's Bcrypt. "
+            "For JWT: use vapor/jwt-kit with secrets from environment variables. "
+            "Never implement auth primitives from scratch."
+        ),
+    }
+
     def _get_fix_hint(self, language: str, description: str = "") -> str:
         if language in ("javascript", "typescript"):
             if "localStorage" in description:
@@ -122,15 +180,8 @@ class AuthDetector(BaseDetector):
                     "Disable debug mode in production. Set NEXTAUTH_SECRET in .env.local via process.env.NEXTAUTH_SECRET "
                     "and never hardcode auth configuration values."
                 )
-            return (
-                "For password hashing: use 'npm install bcryptjs'. "
-                "For JWT: use 'npm install jsonwebtoken' with a secret from process.env. "
-                "Consider using NextAuth.js or Passport.js instead of custom auth."
-            )
-        if language == "python":
-            return (
-                "For password hashing: use 'pip install bcrypt' and bcrypt.hashpw(). "
-                "For JWT: use python-jose with a strong HS256 secret from environment variables. "
-                "Never implement auth logic from scratch."
-            )
+
+        hint = self._AUTH_FIX_HINTS.get(language)
+        if hint:
+            return hint
         return "Use a battle-tested auth library. Never implement password hashing or JWT handling from scratch."

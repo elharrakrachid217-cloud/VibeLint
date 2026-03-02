@@ -19,6 +19,28 @@ and let the developer make the change with guidance.
 
 import re
 
+_HASH_COMMENT_LANGS = {"python", "ruby", "bash", "shell", "r", "elixir", "yaml", "terraform", "dockerfile"}
+_SLASH_COMMENT_LANGS = {
+    "javascript", "typescript", "java", "go", "php", "c", "cpp",
+    "csharp", "rust", "kotlin", "swift", "scala", "lua",
+}
+
+
+def _comment_prefix(language: str) -> str:
+    if language in _HASH_COMMENT_LANGS:
+        return "#"
+    if language in _SLASH_COMMENT_LANGS:
+        return "//"
+    if language == "html":
+        return "<!--"
+    return "#"
+
+
+def _comment_suffix(language: str) -> str:
+    if language == "html":
+        return " -->"
+    return ""
+
 
 class Remediator:
 
@@ -61,29 +83,44 @@ class Remediator:
 
         return '\n'.join(fixed_lines)
 
+    _ENV_VAR_TEMPLATES: dict[str, str] = {
+        "python":     '{indent}{var} = os.environ.get("{var}")  # secret moved to .env',
+        "javascript": '{indent}const {var} = process.env.{var};  // secret moved to .env',
+        "typescript": '{indent}const {var} = process.env.{var};  // secret moved to .env',
+        "java":       '{indent}String {var} = System.getenv("{var}");  // secret moved to .env',
+        "go":         '{indent}{var} := os.Getenv("{var}")  // secret moved to .env',
+        "ruby":       "{indent}{var} = ENV['{var}']  # secret moved to .env",
+        "php":        "{indent}${var} = getenv('{var}');  // secret moved to .env",
+        "rust":       '{indent}let {var} = std::env::var("{var}").expect("{var} not set");  // secret moved to .env',
+        "csharp":     '{indent}var {var} = Environment.GetEnvironmentVariable("{var}");  // secret moved to .env',
+        "kotlin":     '{indent}val {var} = System.getenv("{var}")  // secret moved to .env',
+        "swift":      '{indent}let {var} = ProcessInfo.processInfo.environment["{var}"]  // secret moved to .env',
+        "scala":      '{indent}val {var} = sys.env.getOrElse("{var}", "")  // secret moved to .env',
+    }
+
     def _replace_with_env_var(self, line: str, language: str) -> str:
         """
         Transform:   API_KEY = "sk-abc123..."
         Into:        API_KEY = os.environ.get("API_KEY")  # VibeGuard: moved to .env
         """
-        # Try to extract the variable name
+        cp = _comment_prefix(language)
+        cs = _comment_suffix(language)
         match = re.match(r'(\s*)(\w+)\s*=\s*["\'].*["\']', line)
         if not match:
             indent = re.match(r'(\s*)', line).group(1)
-            if language == "python":
-                return f"{indent}# ⚠️  VIBEGUARD: Hard-coded secret removed. Load from environment:\n{indent}# import os; VALUE = os.environ.get('YOUR_VAR_NAME')"
-            else:
-                return f"{indent}// ⚠️  VIBEGUARD: Hard-coded secret removed. Load from environment:\n{indent}// const VALUE = process.env.YOUR_VAR_NAME;"
+            return (
+                f"{indent}{cp} VIBEGUARD: Hard-coded secret removed. "
+                f"Load from environment variable.{cs}"
+            )
 
         indent = match.group(1)
         var_name = match.group(2).upper()
 
-        if language == "python":
-            return f'{indent}{var_name} = os.environ.get("{var_name}")  # 🛡️ VibeGuard: secret moved to .env'
-        elif language in ("javascript", "typescript"):
-            return f'{indent}const {var_name} = process.env.{var_name};  // 🛡️ VibeGuard: secret moved to .env'
+        template = self._ENV_VAR_TEMPLATES.get(language)
+        if template:
+            return template.format(indent=indent, var=var_name)
 
-        return line
+        return f"{indent}{cp} VIBEGUARD: Replace with env var for {var_name}{cs}"
 
     def _add_warning_comment(self, code: str, violation: dict, language: str) -> str:
         """
@@ -98,18 +135,19 @@ class Remediator:
         fix_hint = violation.get("fix_hint", "Review this line for security issues.")
         description = violation.get("description", "Security issue detected.")
 
+        cp = _comment_prefix(language)
+        cs = _comment_suffix(language)
+
         lines = code.split('\n')
         fixed_lines = []
 
         for line in lines:
             if line.strip() == offending_line:
                 indent = re.match(r'(\s*)', line).group(1)
-                if language == "python":
-                    fixed_lines.append(f'{indent}# 🚨 VIBEGUARD [{violation["severity"].upper()}]: {description}')
-                    fixed_lines.append(f'{indent}# 💡 FIX: {fix_hint}')
-                else:
-                    fixed_lines.append(f'{indent}// 🚨 VIBEGUARD [{violation["severity"].upper()}]: {description}')
-                    fixed_lines.append(f'{indent}// 💡 FIX: {fix_hint}')
+                fixed_lines.append(
+                    f'{indent}{cp} VIBEGUARD [{violation["severity"].upper()}]: {description}{cs}'
+                )
+                fixed_lines.append(f'{indent}{cp} FIX: {fix_hint}{cs}')
                 fixed_lines.append(line)
             else:
                 fixed_lines.append(line)

@@ -128,9 +128,15 @@ class SecretsDetector(BaseDetector):
 
     def _scan_with_detect_secrets(self, code: str, language: str) -> list[dict]:
         """Write *code* to a temp file and scan it with detect-secrets."""
-        ext = {"python": ".py", "javascript": ".js", "typescript": ".ts"}.get(
-            language, ".txt"
-        )
+        ext = {
+            "python": ".py", "javascript": ".js", "typescript": ".ts",
+            "java": ".java", "go": ".go", "ruby": ".rb", "php": ".php",
+            "c": ".c", "cpp": ".cpp", "csharp": ".cs", "rust": ".rs",
+            "kotlin": ".kt", "swift": ".swift", "scala": ".scala",
+            "bash": ".sh", "shell": ".sh", "lua": ".lua", "r": ".r",
+            "elixir": ".ex", "terraform": ".tf", "dockerfile": ".dockerfile",
+            "html": ".html", "json": ".json", "yaml": ".yaml",
+        }.get(language, ".txt")
         tmp_path: str | None = None
         results: list[dict] = []
         seen_lines: set[int] = set()
@@ -206,21 +212,70 @@ class SecretsDetector(BaseDetector):
 
         return violations
 
+    _SECRET_FIX_HINTS: dict[str, str] = {
+        "python": (
+            "Remove this hard-coded value. "
+            "Add it to a .env file and load it with: "
+            "import os; value = os.environ.get('YOUR_VAR_NAME'). "
+            "Make sure .env is in your .gitignore."
+        ),
+        "javascript": (
+            "Remove this hard-coded value. "
+            "Add it to a .env file and access it with: "
+            "process.env.YOUR_VAR_NAME. "
+            "Install dotenv: npm install dotenv, then add require('dotenv').config() at the top."
+        ),
+        "typescript": (
+            "Remove this hard-coded value. "
+            "Add it to a .env file and access it with: "
+            "process.env.YOUR_VAR_NAME. "
+            "Install dotenv: npm install dotenv, then add require('dotenv').config() at the top."
+        ),
+        "java": (
+            "Remove this hard-coded value. "
+            "Load it from an environment variable: System.getenv(\"YOUR_VAR_NAME\"), "
+            "or use a secrets manager. Never commit credentials to source control."
+        ),
+        "go": (
+            "Remove this hard-coded value. "
+            "Load it with os.Getenv(\"YOUR_VAR_NAME\") or use a library like godotenv. "
+            "Never commit credentials to source control."
+        ),
+        "ruby": (
+            "Remove this hard-coded value. "
+            "Load it with ENV['YOUR_VAR_NAME'] or use the dotenv gem. "
+            "Never commit credentials to source control."
+        ),
+        "php": (
+            "Remove this hard-coded value. "
+            "Load it with getenv('YOUR_VAR_NAME') or $_ENV['YOUR_VAR_NAME']. "
+            "Use vlucas/phpdotenv for .env support. Never commit credentials to source control."
+        ),
+        "rust": (
+            "Remove this hard-coded value. "
+            "Load it with std::env::var(\"YOUR_VAR_NAME\") or use the dotenvy crate. "
+            "Never commit credentials to source control."
+        ),
+        "csharp": (
+            "Remove this hard-coded value. "
+            "Load it with Environment.GetEnvironmentVariable(\"YOUR_VAR_NAME\") "
+            "or use IConfiguration with user-secrets. Never commit credentials to source control."
+        ),
+        "kotlin": (
+            "Remove this hard-coded value. "
+            "Load it with System.getenv(\"YOUR_VAR_NAME\") or use a secrets manager. "
+            "Never commit credentials to source control."
+        ),
+        "swift": (
+            "Remove this hard-coded value. "
+            "Load it from ProcessInfo.processInfo.environment[\"YOUR_VAR_NAME\"] "
+            "or use a configuration file excluded from version control."
+        ),
+    }
+
     def _get_fix_hint(self, pattern: str, line: str, language: str) -> str:
         """Return a specific, actionable fix instruction for the violation."""
-
-        if language == "python":
-            return (
-                "Remove this hard-coded value. "
-                "Add it to a .env file and load it with: "
-                "import os; value = os.environ.get('YOUR_VAR_NAME'). "
-                "Make sure .env is in your .gitignore."
-            )
-        elif language in ("javascript", "typescript"):
-            return (
-                "Remove this hard-coded value. "
-                "Add it to a .env file and access it with: "
-                "process.env.YOUR_VAR_NAME. "
-                "Install dotenv: npm install dotenv, then add require('dotenv').config() at the top."
-            )
+        hint = self._SECRET_FIX_HINTS.get(language)
+        if hint:
+            return hint
         return "Move this value to an environment variable and never commit it to source control."

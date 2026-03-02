@@ -119,6 +119,56 @@ class InjectionDetector(BaseDetector):
 
         return violations
 
+    _SQL_FIX_HINTS: dict[str, str] = {
+        "python": (
+            "Replace string-built queries with parameterized queries. "
+            "SQLAlchemy ORM example: db.query(User).filter(User.id == user_id). "
+            "Raw psycopg2 example: cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))"
+        ),
+        "javascript": (
+            "Use an ORM like Prisma or Drizzle instead of raw SQL. "
+            "If using raw queries: db.query('SELECT * FROM users WHERE id = $1', [userId]). "
+            "For XSS: use DOMPurify — npm install dompurify."
+        ),
+        "typescript": (
+            "Use an ORM like Prisma or Drizzle instead of raw SQL. "
+            "If using raw queries: db.query('SELECT * FROM users WHERE id = $1', [userId]). "
+            "For XSS: use DOMPurify — npm install dompurify."
+        ),
+        "java": (
+            "Use PreparedStatement with parameterized queries: "
+            "stmt = conn.prepareStatement(\"SELECT * FROM users WHERE id = ?\"); stmt.setInt(1, userId). "
+            "Or use JPA/Hibernate with named parameters."
+        ),
+        "go": (
+            "Use parameterized queries: db.Query(\"SELECT * FROM users WHERE id = $1\", userId). "
+            "Never concatenate user input into SQL strings. Use sqlx or GORM for safer patterns."
+        ),
+        "ruby": (
+            "Use ActiveRecord or parameterized queries: "
+            "User.where(id: user_id) or conn.exec_params('SELECT * FROM users WHERE id = $1', [user_id]). "
+            "Never interpolate user input into SQL strings."
+        ),
+        "php": (
+            "Use PDO prepared statements: $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?'); "
+            "$stmt->execute([$userId]). Never concatenate user input into SQL strings."
+        ),
+        "csharp": (
+            "Use parameterized queries with SqlCommand: "
+            "cmd.Parameters.AddWithValue(\"@id\", userId). "
+            "Or use Entity Framework / Dapper with parameterized queries."
+        ),
+        "rust": (
+            "Use parameterized queries with sqlx: "
+            "sqlx::query(\"SELECT * FROM users WHERE id = $1\").bind(user_id). "
+            "Never format! user input into SQL strings."
+        ),
+        "kotlin": (
+            "Use PreparedStatement or Exposed ORM with parameterized queries. "
+            "Never concatenate user input into SQL strings."
+        ),
+    }
+
     def _get_fix_hint(self, language: str, description: str = "") -> str:
         if language in ("javascript", "typescript"):
             if "eval()" in description:
@@ -144,11 +194,6 @@ class InjectionDetector(BaseDetector):
                     "Use Object.create(null) for lookup objects, or Map instead of plain objects. "
                     "Never use user input directly as an object key."
                 )
-            return (
-                "Use an ORM like Prisma or Drizzle instead of raw SQL. "
-                "If using raw queries: db.query('SELECT * FROM users WHERE id = $1', [userId]). "
-                "For XSS: use DOMPurify — npm install dompurify."
-            )
         if language == "python":
             if "os.system" in description:
                 return (
@@ -168,9 +213,8 @@ class InjectionDetector(BaseDetector):
                     "assert resolved.startswith(ALLOWED_BASE_DIR). "
                     "Never pass raw user input to open()."
                 )
-            return (
-                "Replace string-built queries with parameterized queries. "
-                "SQLAlchemy ORM example: db.query(User).filter(User.id == user_id). "
-                "Raw psycopg2 example: cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))"
-            )
+
+        hint = self._SQL_FIX_HINTS.get(language)
+        if hint:
+            return hint
         return "Never build queries or HTML by concatenating user input. Use parameterized queries and output encoding."

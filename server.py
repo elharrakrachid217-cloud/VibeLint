@@ -25,7 +25,17 @@ from mcp.types import Tool, TextContent
 
 from core.scanner import SecurityScanner
 
-# Initialize the server and scanner
+SUPPORTED_LANGUAGES = [
+    "python", "javascript", "typescript",
+    "java", "go", "ruby", "php",
+    "c", "cpp", "csharp",
+    "rust", "kotlin", "swift", "scala",
+    "bash", "shell",
+    "html", "json", "yaml",
+    "lua", "r", "elixir", "terraform", "dockerfile",
+    "generic",
+]
+
 app = Server(
     "vibeguard",
     instructions=(
@@ -69,14 +79,14 @@ async def list_tools() -> list[Tool]:
                     "filename": {
                         "type": "string",
                         "description": (
-                            "Target filename including extension (e.g., 'auth.py', 'db.js', 'api.ts'). "
+                            "Target filename including extension (e.g., 'auth.py', 'db.js', 'api.ts', 'main.go'). "
                             "Used to select language-specific security rules."
                         )
                     },
                     "language": {
                         "type": "string",
                         "description": "Programming language of the code block.",
-                        "enum": ["python", "javascript", "typescript"]
+                        "enum": SUPPORTED_LANGUAGES
                     }
                 },
                 "required": ["code", "filename", "language"]
@@ -93,7 +103,7 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
     code = arguments.get("code", "")
     filename = arguments.get("filename", "unknown")
-    language = arguments.get("language", "python")
+    language = arguments.get("language", "generic")
 
     # Run the security scan
     result = scanner.scan(code=code, filename=filename, language=language)

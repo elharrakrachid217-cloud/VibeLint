@@ -75,14 +75,14 @@ def _is_registered_windows() -> bool:
         return False
 
 
-def _install_windows() -> None:
+def _install_windows() -> bool:
     print("\n🪟  Detected: Windows")
     print("  Installing via Task Scheduler …\n")
 
     if _is_registered_windows():
         _step(f"⚠  Task '{TASK_NAME}' is already registered.")
         _step("Run uninstall_service.py first if you want to re-register.")
-        return
+        return True
 
     _ensure_log_dir()
 
@@ -95,7 +95,7 @@ def _install_windows() -> None:
         _step(f"✓ Runner script: {RUNNER_BAT}")
     except PermissionError:
         _step(f"✗ Permission denied writing {RUNNER_BAT}")
-        return
+        return False
 
     try:
         result = subprocess.run(
@@ -115,12 +115,12 @@ def _install_windows() -> None:
                 _step('  Right-click Terminal → "Run as administrator"')
             else:
                 _step(f"✗ schtasks failed: {stderr}")
-            return
+            return False
         _step(f"✓ Task '{TASK_NAME}' registered (runs at logon)")
     except FileNotFoundError:
         _step("✗ 'schtasks' command not found.")
         _step("  Detected Windows but Task Scheduler CLI is missing.")
-        return
+        return False
 
     try:
         r = subprocess.run(
@@ -135,6 +135,7 @@ def _install_windows() -> None:
         _step(f"⚠  Registered but could not start now: {exc}")
 
     _step(f"\n  Logs → {LOG_FILE}")
+    return True
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -145,14 +146,14 @@ def _is_registered_mac() -> bool:
     return PLIST_PATH.exists()
 
 
-def _install_mac() -> None:
+def _install_mac() -> bool:
     print("\n🍎  Detected: macOS")
     print("  Installing via launchd …\n")
 
     if _is_registered_mac():
         _step(f"⚠  Plist already exists: {PLIST_PATH}")
         _step("Run uninstall_service.py first if you want to re-register.")
-        return
+        return True
 
     _ensure_log_dir()
     _make_executable(SERVER_PY)
@@ -184,7 +185,7 @@ def _install_mac() -> None:
     except PermissionError:
         _step(f"✗ Permission denied writing {PLIST_PATH}")
         _step("  Check that ~/Library/LaunchAgents/ is writable.")
-        return
+        return False
 
     try:
         r = subprocess.run(
@@ -198,9 +199,10 @@ def _install_mac() -> None:
     except FileNotFoundError:
         _step("✗ 'launchctl' command not found.")
         _step("  Detected macOS but launchctl is missing.")
-        return
+        return False
 
     _step(f"\n  Logs → {LOG_FILE}")
+    return True
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -211,14 +213,14 @@ def _is_registered_linux() -> bool:
     return SYSTEMD_PATH.exists()
 
 
-def _install_linux() -> None:
+def _install_linux() -> bool:
     print("\n🐧  Detected: Linux")
     print("  Installing via systemd (user service) …\n")
 
     if _is_registered_linux():
         _step(f"⚠  Unit file already exists: {SYSTEMD_PATH}")
         _step("Run uninstall_service.py first if you want to re-register.")
-        return
+        return True
 
     _ensure_log_dir()
     _make_executable(SERVER_PY)
@@ -246,7 +248,7 @@ def _install_linux() -> None:
     except PermissionError:
         _step(f"✗ Permission denied writing {SYSTEMD_PATH}")
         _step(f"  Check that {SYSTEMD_DIR} is writable.")
-        return
+        return False
 
     try:
         subprocess.run(
@@ -267,11 +269,13 @@ def _install_linux() -> None:
         _step("✗ 'systemctl' command not found.")
         _step("  Detected Linux but systemd is missing.")
         _step("  If using a different init system, register the service manually.")
-        return
+        return False
     except subprocess.CalledProcessError as exc:
-        _step(f"⚠  systemctl error: {exc.stderr.strip() if exc.stderr else exc}")
+        _step(f"✗ systemctl error: {exc.stderr.strip() if exc.stderr else exc}")
+        return False
 
     _step(f"\n  Logs → {LOG_FILE}")
+    return True
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -286,17 +290,21 @@ def main() -> None:
     os_name = platform.system()
 
     if os_name == "Windows":
-        _install_windows()
+        success = _install_windows()
     elif os_name == "Darwin":
-        _install_mac()
+        success = _install_mac()
     elif os_name == "Linux":
-        _install_linux()
+        success = _install_linux()
     else:
         print(f"\n  ✗ Unsupported OS: {os_name}")
         print("    Supported: Windows, macOS, Linux")
         sys.exit(1)
 
-    print("\n  Done! VibeGuard will auto-start on next login.")
+    if success:
+        print("\n  Done! VibeGuard will auto-start on next login.")
+    else:
+        print("\n  ✗ Installation failed. Review the errors above and try again.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

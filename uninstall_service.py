@@ -35,7 +35,7 @@ def _step(msg: str) -> None:
 # Windows
 # ═════════════════════════════════════════════════════════════════════
 
-def _uninstall_windows() -> None:
+def _uninstall_windows() -> bool:
     print("\n🪟  Detected: Windows")
     print("  Removing Task Scheduler entry …\n")
 
@@ -46,11 +46,11 @@ def _uninstall_windows() -> None:
         )
     except FileNotFoundError:
         _step("✗ 'schtasks' command not found.")
-        return
+        return False
 
     if check.returncode != 0:
         _step(f"ℹ  Task '{TASK_NAME}' is not registered. Nothing to remove.")
-        return
+        return True
 
     subprocess.run(
         ["schtasks", "/End", "/TN", TASK_NAME],
@@ -69,11 +69,11 @@ def _uninstall_windows() -> None:
                 _step("✗ Permission denied. Run this script as Administrator.")
             else:
                 _step(f"✗ schtasks /Delete failed: {stderr}")
-            return
+            return False
         _step(f"✓ Task '{TASK_NAME}' removed from Task Scheduler")
     except FileNotFoundError:
         _step("✗ 'schtasks' command not found.")
-        return
+        return False
 
     if RUNNER_BAT.exists():
         try:
@@ -82,18 +82,20 @@ def _uninstall_windows() -> None:
         except OSError:
             pass
 
+    return True
+
 
 # ═════════════════════════════════════════════════════════════════════
 # macOS
 # ═════════════════════════════════════════════════════════════════════
 
-def _uninstall_mac() -> None:
+def _uninstall_mac() -> bool:
     print("\n🍎  Detected: macOS")
     print("  Removing launchd service …\n")
 
     if not PLIST_PATH.exists():
         _step("ℹ  Service is not installed. Nothing to remove.")
-        return
+        return True
 
     try:
         subprocess.run(
@@ -110,19 +112,22 @@ def _uninstall_mac() -> None:
     except PermissionError:
         _step(f"✗ Permission denied removing {PLIST_PATH}")
         _step(f'  Remove manually: rm "{PLIST_PATH}"')
+        return False
+
+    return True
 
 
 # ═════════════════════════════════════════════════════════════════════
 # Linux
 # ═════════════════════════════════════════════════════════════════════
 
-def _uninstall_linux() -> None:
+def _uninstall_linux() -> bool:
     print("\n🐧  Detected: Linux")
     print("  Removing systemd user service …\n")
 
     if not SYSTEMD_PATH.exists():
         _step("ℹ  Service is not installed. Nothing to remove.")
-        return
+        return True
 
     try:
         subprocess.run(
@@ -144,6 +149,7 @@ def _uninstall_linux() -> None:
     except PermissionError:
         _step(f"✗ Permission denied removing {SYSTEMD_PATH}")
         _step(f'  Remove manually: rm "{SYSTEMD_PATH}"')
+        return False
 
     try:
         subprocess.run(
@@ -153,6 +159,8 @@ def _uninstall_linux() -> None:
         _step("✓ systemd daemon reloaded")
     except (FileNotFoundError, OSError):
         pass
+
+    return True
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -165,17 +173,21 @@ def main() -> None:
     os_name = platform.system()
 
     if os_name == "Windows":
-        _uninstall_windows()
+        success = _uninstall_windows()
     elif os_name == "Darwin":
-        _uninstall_mac()
+        success = _uninstall_mac()
     elif os_name == "Linux":
-        _uninstall_linux()
+        success = _uninstall_linux()
     else:
         print(f"\n  ✗ Unsupported OS: {os_name}")
         sys.exit(1)
 
-    print("\n  Done! VibeGuard background service has been removed.")
-    print("  Note: Log files in logs/ were not deleted.")
+    if success:
+        print("\n  Done! VibeGuard background service has been removed.")
+        print("  Note: Log files in logs/ were not deleted.")
+    else:
+        print("\n  ✗ Uninstall failed. Review the errors above and try again.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
