@@ -1,76 +1,113 @@
-# Adding VibeGuard MCP in Cursor (Windows)
+# VibeGuard MCP — Setup Guide
 
-If Cursor doesn’t pick up the MCP automatically, use one of these methods.
+VibeGuard works with any IDE or AI agent that supports the **Model Context Protocol (MCP)**. Below are setup instructions for common clients.
 
 ---
 
-## Method 1: Use project config (recommended)
+## Cursor
+
+### Method 1: Project config (recommended)
 
 1. **Open the correct folder in Cursor**
    - File → Open Folder
    - Choose: `vibeguard_starter` (the parent folder that contains the `vibeguard` subfolder)
-   - Cursor looks for `.cursor/mcp.json` in the folder you open; the config is now at `vibeguard_starter/.cursor/mcp.json`.
+   - Cursor looks for `.cursor/mcp.json` in the folder you open.
 
 2. **Reload so Cursor sees the config**
-   - `Ctrl+Shift+P` → run **“Developer: Reload Window”**
-   - Or close Cursor and open the `vibeguard_starter` folder again.
+   - `Ctrl+Shift+P` → run **"Developer: Reload Window"**
+   - Or close Cursor and open the folder again.
 
 3. **Check MCP**
-   - `Ctrl+Shift+P` → **“Cursor: Open MCP Servers”** (or go to **Settings → Cursor Settings → Features → MCP**)
-   - You should see **vibeguard** in the list. If it’s disabled or has an error, turn it on / fix the error.
+   - `Ctrl+Shift+P` → **"Cursor: Open MCP Servers"** (or **Settings → Cursor Settings → Features → MCP**)
+   - You should see **vibeguard** in the list. Toggle it on if needed.
 
-4. **Ensure the server can run**
-   - In a terminal, from the `vibeguard` folder, run: `python server.py`
-   - It should start without errors (you can stop it with Ctrl+C). Cursor will start it automatically when using the MCP.
+### Method 2: Cursor Settings UI
 
----
-
-## Method 2: Add via Cursor Settings UI
-
-1. **Open Cursor Settings**
-   - `Ctrl+,` (comma) or **File → Preferences → Cursor Settings**.
-
-2. **Open MCP**
-   - Go to **Features** (or **Tools & MCP**) → **MCP**.
-
-3. **Add a new server**
-   - Click **“+ Add new MCP server”** (or **“Add Server”**).
-
-4. **Enter VibeGuard details**
+1. Open **Cursor Settings** → **Features** (or **Tools & MCP**) → **MCP**.
+2. Click **"+ Add new MCP server"**.
+3. Enter:
    - **Name:** `vibeguard`
-   - **Type:** **Command** (run a local process).
+   - **Type:** Command
    - **Command:** `python`
-   - **Arguments:** `server.py` (as a single argument).
-   - **Working directory (cwd):**  
-     `C:\Users\hp\Favorites\Downloads\vibeguard project\vibeguard_starter\vibeguard`  
-     (If the UI has a “cwd” or “Working directory” field, paste this path.)
+   - **Arguments:** `server.py`
+   - **Working directory (cwd):** absolute path to the `vibeguard` folder
+4. Save and restart Cursor.
 
-5. **Save** and **restart Cursor** (fully quit and reopen).
+### Method 3: Global config (all projects)
 
----
-
-## Method 3: Global MCP config (all projects)
-
-Cursor can also read a global MCP config. On Windows it’s often:
-
-- `%APPDATA%\Cursor\mcp.json`, or  
-- `C:\Users\hp\.cursor\mcp.json`
-
-1. Create or open that file (e.g. `C:\Users\hp\AppData\Roaming\Cursor\mcp.json`).
-2. Paste the same JSON as in `vibeguard_starter/.cursor/mcp.json` (the `mcpServers.vibeguard` block with `command`, `args`, `cwd`).
-3. Save, then fully restart Cursor.
+Edit `C:\Users\<you>\.cursor\mcp.json` (or `%APPDATA%\Cursor\mcp.json`) and add the `vibeguard` server block. Restart Cursor.
 
 ---
 
-## If it still doesn’t work
+## Windsurf
 
-- **Python on PATH**  
-  In a **new** terminal run: `python --version`  
-  If that fails, add your Python install to PATH or use the full path to `python.exe` in the MCP **Command** (e.g. `C:\Users\hp\AppData\Local\Python\pythoncore-3.14-64\python.exe`).
+1. Create or edit `.windsurf/mcp.json` in your project root (or the global config at `~/.codeium/windsurf/mcp_config.json`).
+2. Add:
+   ```json
+   {
+     "mcpServers": {
+       "vibeguard": {
+         "command": "python",
+         "args": ["server.py"],
+         "cwd": "/absolute/path/to/vibeguard"
+       }
+     }
+   }
+   ```
+3. Restart Windsurf.
 
-- **Path with spaces**  
-  Your path has a space (`vibeguard project`). The JSON `cwd` we use is correct. If you moved the project, update `cwd` in `.cursor/mcp.json` (and in the Settings UI if you used Method 2) to the new path.
+---
 
-- **Check MCP logs**  
-  In Cursor: **Help → Toggle Developer Tools → Console**, or check logs under  
-  `%APPDATA%\Cursor\logs\` for MCP-related errors.
+## Claude Desktop
+
+1. Open the config file:
+   - **Mac:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+2. Add the `vibeguard` server block (same JSON as above).
+3. Restart Claude Desktop.
+
+---
+
+## VS Code (GitHub Copilot)
+
+1. Create or edit `.vscode/mcp.json` in your project root.
+2. Add the same `mcpServers.vibeguard` JSON block.
+3. Reload VS Code.
+
+---
+
+## Any other MCP-compatible client
+
+The pattern is always the same:
+
+```json
+{
+  "mcpServers": {
+    "vibeguard": {
+      "command": "python",
+      "args": ["server.py"],
+      "cwd": "/absolute/path/to/vibeguard"
+    }
+  }
+}
+```
+
+Point `cwd` to the folder containing `server.py`, add this to your client's MCP config, and restart.
+
+---
+
+## Troubleshooting
+
+- **Python on PATH**
+  Run `python --version` in a new terminal. If it fails, use the full path to `python.exe` in the `command` field.
+
+- **Paths with spaces**
+  If your path contains spaces, make sure the `cwd` value is properly quoted in JSON (e.g. `"C:\\Users\\me\\my project\\vibeguard"`).
+
+- **Verify the server can start**
+  Run `python server.py` from the `vibeguard` folder. You should see:
+  ```
+  🛡️  VibeGuard MCP Server starting...
+     Waiting for MCP client to connect...
+  ```
+  If that works, the problem is in your IDE's MCP config — double-check the path.

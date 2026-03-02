@@ -30,9 +30,25 @@ pytest tests/ -v
 
 All tests should pass. If they do — your scanner is working.
 
-### 3. Connect to Cursor
+### 3. Connect to your IDE / AI agent
 
-Open `.cursor/mcp.json` and replace the `cwd` path with the **absolute path** to this folder.
+VibeGuard uses the **Model Context Protocol (MCP)** standard and works with any MCP-compatible client — Cursor, Windsurf, Claude Desktop, VS Code (Copilot), and others.
+
+Create or edit your IDE's MCP configuration file and add a `vibeguard` entry. The typical config looks like:
+
+```json
+{
+  "mcpServers": {
+    "vibeguard": {
+      "command": "python",
+      "args": ["server.py"],
+      "cwd": "/absolute/path/to/vibeguard"
+    }
+  }
+}
+```
+
+Replace the `cwd` value with the **absolute path** to this folder:
 
 **Mac/Linux example:**
 ```json
@@ -44,7 +60,16 @@ Open `.cursor/mcp.json` and replace the `cwd` path with the **absolute path** to
 "cwd": "C:\\Users\\yourname\\projects\\vibeguard"
 ```
 
-Then in Cursor: `Settings → MCP → Add Server` and point it to this config file.
+Where this config file lives depends on your IDE:
+
+| IDE / Client | Config location |
+|---|---|
+| **Cursor** | `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global) |
+| **Windsurf** | `.windsurf/mcp.json` (project) or `~/.codeium/windsurf/mcp_config.json` (global) |
+| **Claude Desktop** | `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows) |
+| **VS Code (Copilot)** | `.vscode/mcp.json` (project) |
+
+After adding the config, restart your IDE or reload the window so it picks up the new MCP server.
 
 ### 4. Start the server
 
@@ -55,7 +80,7 @@ python server.py
 You should see:
 ```
 🛡️  VibeGuard MCP Server starting...
-   Waiting for Cursor to connect...
+   Waiting for MCP client to connect...
 ```
 
 ---
@@ -63,11 +88,11 @@ You should see:
 ## How It Works
 
 ```
-You describe a feature in Cursor
+You describe a feature in your IDE
         ↓
-Claude (Opus 4.6) generates code
+The AI agent generates code
         ↓
-Cursor calls VibeGuard's security_check tool
+Your IDE calls VibeGuard's security_check tool via MCP
         ↓
 VibeGuard scans for secrets, insecure auth, injection risks
         ↓
@@ -82,10 +107,10 @@ You review and accept the clean version
 
 ```
 vibeguard/
-├── server.py                  # MCP server — entry point, this is what Cursor connects to
+├── server.py                  # MCP server — entry point, this is what your IDE connects to
 ├── requirements.txt
 ├── .cursor/
-│   └── mcp.json               # Cursor MCP configuration
+│   └── mcp.json               # MCP configuration (Cursor example — adapt for your IDE)
 │
 ├── core/
 │   ├── scanner.py             # Orchestrates all detectors and returns final result

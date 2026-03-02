@@ -1,8 +1,9 @@
 """
 VibeGuard MCP Server
 ====================
-This is the main entry point. Cursor calls this server before writing
-AI-generated code to disk. We scan it, flag violations, and return fixes.
+This is the main entry point. Any MCP-compatible IDE or AI agent calls this
+server before writing AI-generated code to disk. We scan it, flag violations,
+and return fixes.
 
 Run with:
     python server.py
@@ -14,7 +15,7 @@ import sys
 import os
 import io
 
-# Ensure imports work regardless of which directory Cursor launches from
+# Ensure imports work regardless of which directory the MCP client launches from
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -103,7 +104,7 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
 async def main():
     print("🛡️  VibeGuard MCP Server starting...")
-    print("   Waiting for Cursor to connect...\n")
+    print("   Waiting for MCP client to connect...\n")
     async with stdio_server() as (read_stream, write_stream):
         await app.run(read_stream, write_stream, app.create_initialization_options())
 
