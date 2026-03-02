@@ -2,9 +2,9 @@
 ### Security-First Coding Proxy for AI-Generated Code
 
 VibeGuard intercepts AI-generated code **before it reaches your codebase** and automatically fixes:
-- 🔑 Hard-coded secrets (API keys, tokens, database credentials)
-- 🔐 Insecure authentication patterns (MD5 passwords, JWT without verification)
-- 💉 SQL injection and XSS vulnerabilities
+- 🔑 Hard-coded secrets (API keys, tokens, database credentials, `process.env` fallback bypasses, Next.js secrets)
+- 🔐 Insecure authentication patterns (MD5 passwords, JWT without verification, localStorage JWT storage, NextAuth misconfigs)
+- 💉 SQL injection, XSS, and JS/TS-specific risks (`eval()`, `document.write()`, `dangerouslySetInnerHTML`, prototype pollution)
 
 ---
 
@@ -85,14 +85,17 @@ vibeguard/
 ├── core/
 │   ├── scanner.py             # Orchestrates all detectors and returns final result
 │   ├── remediator.py          # Auto-fixes violations in the code
+│   ├── logger.py              # SQLite-backed audit log for scan results
 │   └── detectors/
 │       ├── base.py            # Abstract base class for all detectors
-│       ├── secrets.py         # Hard-coded secrets detector ← start here
-│       ├── auth.py            # Insecure auth pattern detector
-│       └── injection.py       # SQL injection + XSS detector
+│       ├── secrets.py         # Hard-coded secrets detector (Python + JS/TS)
+│       ├── auth.py            # Insecure auth pattern detector (Python + JS/TS)
+│       └── injection.py       # SQL injection, XSS, and JS/TS injection detector
 │
 └── tests/
-    └── test_scanner.py        # Test suite — run with: pytest tests/ -v
+    ├── test_scanner.py        # Core scanner tests (16 tests)
+    ├── test_scanner_js.py     # JS/TS-specific pattern tests (27 tests)
+    └── test_logger.py         # Audit logger tests (22 tests)
 ```
 
 ---
@@ -108,8 +111,8 @@ vibeguard/
        "critical"  # or "high", "medium", "low"
    ),
    ```
-3. Add a test in `tests/test_scanner.py` first (test-driven development)
-4. Run `pytest tests/ -v` to verify
+3. Add a test first — use `tests/test_scanner.py` for Python patterns or `tests/test_scanner_js.py` for JS/TS patterns
+4. Run `pytest tests/ -v` to verify (65 tests should pass)
 
 That's it. No other files need to change.
 
@@ -134,6 +137,25 @@ print(result["remediated_code"])
 
 ---
 
+## JS/TS Detection Coverage
+
+| Category | Pattern | Severity |
+|----------|---------|----------|
+| **Secrets** | `process.env.KEY \|\| "fallback"` bypass | high |
+| **Secrets** | Hardcoded `NEXTAUTH_SECRET` / `NEXTAUTH_URL` | critical |
+| **Secrets** | `NEXT_PUBLIC_*` variables hardcoded inline | high |
+| **Auth** | `localStorage.setItem("token", ...)` | high |
+| **Auth** | `fetch()` with credentials in URL params | high |
+| **Auth** | `NextAuth({ debug: true })` in production | high |
+| **Injection** | `eval(variable)` with dynamic input | critical |
+| **Injection** | `document.write()` with user data | high |
+| **Injection** | `dangerouslySetInnerHTML` without DOMPurify | high |
+| **Injection** | `obj[userInput] = value` prototype pollution | high |
+
+All fix hints for JS/TS use `process.env.VARIABLE_NAME` syntax, not Python's `os.environ`.
+
+---
+
 ## Roadmap
 
 - [x] MCP server foundation
@@ -141,6 +163,8 @@ print(result["remediated_code"])
 - [x] Auth pattern detection
 - [x] SQL injection + XSS detection
 - [x] Auto-remediation engine
+- [x] JavaScript/TypeScript pattern detection (10 new patterns)
+- [x] SQLite audit logger
 - [ ] Integrate Yelp's detect-secrets for broader coverage
 - [ ] AST-based detection (more accurate than regex)
 - [ ] JavaScript/TypeScript AST parser
