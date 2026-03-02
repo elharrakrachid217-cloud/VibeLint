@@ -1,7 +1,11 @@
 # 🛡️ VibeGuard
-### Security-First Coding Proxy for AI-Generated Code
 
-VibeGuard intercepts AI-generated code **before it reaches your codebase** and automatically fixes:
+![Tests](https://img.shields.io/badge/tests-65%20passing-brightgreen)
+![Python](https://img.shields.io/badge/python-3.8%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+Every time an AI writes code for you, it might be leaking your API keys, breaking your auth, or opening your database to injection attacks. **VibeGuard catches it before it ever touches your files.**
+
 - 🔑 Hard-coded secrets (API keys, tokens, database credentials, `process.env` fallback bypasses, Next.js secrets)
 - 🔐 Insecure authentication patterns (MD5 passwords, JWT without verification, localStorage JWT storage, NextAuth misconfigs)
 - 💉 SQL injection, XSS, and JS/TS-specific risks (`eval()`, `document.write()`, `dangerouslySetInnerHTML`, prototype pollution)
@@ -13,6 +17,7 @@ VibeGuard intercepts AI-generated code **before it reaches your codebase** and a
 ### 1. Clone and install dependencies
 
 ```bash
+git clone https://github.com/elharrakrachid217-cloud/vibeguard.git
 cd vibeguard
 pip install -r requirements.txt
 ```
