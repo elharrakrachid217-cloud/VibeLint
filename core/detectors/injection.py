@@ -1,0 +1,100 @@
+"""
+core/detectors/injection.py
+===========================
+Detects SQL injection and XSS vulnerabilities in AI-generated code.
+
+AI agents frequently build SQL queries with string concatenation
+because it 'works' in demos. It's catastrophically dangerous in production.
+
+Patterns we catch:
+- SQL queries built with f-strings or string concatenation
+- Raw user input inserted into queries
+- Missing input sanitization before rendering HTML
+
+TODO for you to expand:
+- Command injection (os.system with user input)
+- Path traversal vulnerabilities
+- SSRF (Server Side Request Forgery) patterns
+"""
+
+import re
+from core.detectors.base import BaseDetector
+
+
+class InjectionDetector(BaseDetector):
+
+    INJECTION_PATTERNS = [
+        # SQL built with f-strings — the #1 AI-generated vulnerability
+        (
+            r'(?i)(execute|query|cursor\.execute)\s*\(\s*f["\'].*SELECT|INSERT|UPDATE|DELETE',
+            "SQL query built with an f-string allows injection. Use parameterized queries.",
+            "critical"
+        ),
+        # SQL built with .format() or % formatting
+        (
+            r'(?i)(SELECT|INSERT|UPDATE|DELETE).*\.format\(',
+            "SQL query built with .format() allows injection. Use parameterized queries.",
+            "critical"
+        ),
+        (
+            r'(?i)(SELECT|INSERT|UPDATE|DELETE).*%\s*[\(\{]',
+            "SQL query built with % string formatting allows injection. Use parameterized queries.",
+            "critical"
+        ),
+        # String concatenation in SQL (the classic)
+        (
+            r'(?i)(SELECT|INSERT|UPDATE|DELETE).*["\'\s]\s*\+\s*\w',
+            "SQL query built with string concatenation allows injection. Use parameterized queries.",
+            "critical"
+        ),
+        # Raw HTML rendering without escaping (XSS)
+        (
+            r'(?i)(innerHTML|outerHTML|document\.write)\s*=.*\+',
+            "User-controlled data inserted directly into DOM. Sanitize first to prevent XSS.",
+            "high"
+        ),
+        # dangerouslySetInnerHTML in React
+        (
+            r'dangerouslySetInnerHTML',
+            "dangerouslySetInnerHTML used. Ensure content is sanitized with DOMPurify before rendering.",
+            "high"
+        ),
+    ]
+
+    def detect(self, code: str, language: str) -> list[dict]:
+        violations = []
+        lines = code.split('\n')
+
+        for line_num, line in enumerate(lines, start=1):
+            stripped = line.strip()
+            if stripped.startswith('#') or stripped.startswith('//'):
+                continue
+
+            for pattern, description, severity in self.INJECTION_PATTERNS:
+                if re.search(pattern, line):
+                    violations.append({
+                        "type": "injection_risk",
+                        "severity": severity,
+                        "line": line_num,
+                        "description": description,
+                        "offending_line": line.strip(),
+                        "fix_hint": self._get_fix_hint(language)
+                    })
+                    break
+
+        return violations
+
+    def _get_fix_hint(self, language: str) -> str:
+        if language == "python":
+            return (
+                "Replace string-built queries with parameterized queries. "
+                "SQLAlchemy ORM example: db.query(User).filter(User.id == user_id). "
+                "Raw psycopg2 example: cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))"
+            )
+        elif language in ("javascript", "typescript"):
+            return (
+                "Use an ORM like Prisma or Drizzle instead of raw SQL. "
+                "If using raw queries: db.query('SELECT * FROM users WHERE id = $1', [userId]). "
+                "For XSS: use DOMPurify — npm install dompurify."
+            )
+        return "Never build queries or HTML by concatenating user input. Use parameterized queries and output encoding."
