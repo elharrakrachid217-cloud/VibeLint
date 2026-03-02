@@ -3,7 +3,7 @@ core/scanner.py
 ===============
 The brain of VibeGuard.
 
-Takes raw code as input, runs it through three detectors,
+Takes raw code as input, runs it through all detectors,
 and returns a structured result with violations + auto-fixes.
 
 This is where you'll spend most of your development time.
@@ -13,6 +13,7 @@ Each detector is in its own file so they're easy to expand.
 from core.detectors.secrets import SecretsDetector
 from core.detectors.auth import AuthDetector
 from core.detectors.injection import InjectionDetector
+from core.detectors.semgrep import SemgrepDetector
 from core.remediator import Remediator
 
 
@@ -22,6 +23,7 @@ class SecurityScanner:
             SecretsDetector(),
             AuthDetector(),
             InjectionDetector(),
+            SemgrepDetector(),
         ]
         self.remediator = Remediator()
 

@@ -85,6 +85,63 @@ You should see:
 
 ---
 
+## Installation as Background Service
+
+You can register VibeGuard to start automatically when you log in.
+The installer auto-detects your OS and uses the native service mechanism.
+
+### Install
+
+```bash
+python install_service.py
+```
+
+**What happens on each OS:**
+
+| OS | Mechanism | Service file location |
+|---|---|---|
+| **Windows** | Task Scheduler (`schtasks`) | Visible in Task Scheduler as "VibeGuard" |
+| **macOS** | launchd (plist) | `~/Library/LaunchAgents/com.vibeguard.server.plist` |
+| **Linux** | systemd (user unit) | `~/.config/systemd/user/vibeguard.service` |
+
+You should see output like:
+
+```
+🛡️  VibeGuard Service Installer
+  Python:  /usr/bin/python3
+  Server:  /home/you/vibeguard/server.py
+
+🐧  Detected: Linux
+  Installing via systemd (user service) …
+
+  ✓ Log directory: /home/you/vibeguard/logs
+  ✓ Made executable: server.py
+  ✓ Unit file written: /home/you/.config/systemd/user/vibeguard.service
+  ✓ Service enabled (auto-starts at login)
+  ✓ Service started — VibeGuard is running
+
+  Done! VibeGuard will auto-start on next login.
+```
+
+Logs are written to `vibeguard/logs/vibeguard.log`.
+
+### Uninstall
+
+```bash
+python uninstall_service.py
+```
+
+This stops the service, removes the registration, and cleans up generated files.
+Log files in `logs/` are preserved.
+
+### Troubleshooting
+
+- **Windows "Access is denied"** — right-click your terminal and choose "Run as administrator", then re-run `python install_service.py`.
+- **macOS/Linux permission errors** — check that `~/Library/LaunchAgents/` (Mac) or `~/.config/systemd/user/` (Linux) is writable by your user.
+- **Service registered but not running** — check `logs/vibeguard.log` for errors. The most common cause is a missing dependency (`pip install -r requirements.txt`).
+
+---
+
 ## How It Works
 
 ```

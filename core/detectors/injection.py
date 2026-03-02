@@ -1,20 +1,14 @@
 """
 core/detectors/injection.py
 ===========================
-Detects SQL injection and XSS vulnerabilities in AI-generated code.
+Detects injection and traversal vulnerabilities in AI-generated code.
 
-AI agents frequently build SQL queries with string concatenation
-because it 'works' in demos. It's catastrophically dangerous in production.
-
-Patterns we catch:
-- SQL queries built with f-strings or string concatenation
-- Raw user input inserted into queries
-- Missing input sanitization before rendering HTML
-
-TODO for you to expand:
-- Command injection (os.system with user input)
-- Path traversal vulnerabilities
-- SSRF (Server Side Request Forgery) patterns
+Covers:
+- SQL injection (f-strings, .format(), %, concatenation)
+- XSS (innerHTML, eval, document.write, dangerouslySetInnerHTML)
+- Command injection (os.system, subprocess with shell=True)
+- Path traversal (open() with user-controlled paths)
+- Prototype pollution
 """
 
 import re
@@ -77,6 +71,29 @@ class InjectionDetector(BaseDetector):
             "Dynamic property assignment with user-controlled key enables prototype pollution.",
             "high"
         ),
+        # ── Command injection ──────────────────────────────────────────
+        # os.system() with variable or f-string input
+        (
+            r'os\.system\s*\(\s*(?:f["\']|[a-zA-Z_])',
+            "os.system() called with variable input enables command injection. "
+            "Use subprocess.run() with a list of arguments instead.",
+            "critical"
+        ),
+        # subprocess with shell=True
+        (
+            r'subprocess\.\w+\s*\(.*shell\s*=\s*True',
+            "subprocess called with shell=True enables command injection. "
+            "Pass arguments as a list without shell=True.",
+            "critical"
+        ),
+        # ── Path traversal ─────────────────────────────────────────────
+        # open() with user-controlled or dynamic path
+        (
+            r'open\s*\(\s*(?:f["\'].*\{|(?:req|user|input|param|query|body|data|request|args|filename|filepath|file_path|path|file_name)\w*)',
+            "open() called with a user-controlled or dynamic path may allow path traversal. "
+            "Resolve with os.path.realpath() and verify the result is under an allowed base directory.",
+            "high"
+        ),
     ]
 
     def detect(self, code: str, language: str) -> list[dict]:
@@ -133,6 +150,24 @@ class InjectionDetector(BaseDetector):
                 "For XSS: use DOMPurify — npm install dompurify."
             )
         if language == "python":
+            if "os.system" in description:
+                return (
+                    "Replace os.system() with subprocess.run(['cmd', 'arg1', 'arg2'], check=True). "
+                    "Never pass user input into a shell command string."
+                )
+            if "shell=True" in description:
+                return (
+                    "Remove shell=True and pass arguments as a list: "
+                    "subprocess.run(['cmd', 'arg1', 'arg2'], check=True). "
+                    "If shell features are needed, validate and sanitize all input with shlex.quote()."
+                )
+            if "path traversal" in description.lower() or "open()" in description:
+                return (
+                    "Validate the file path before opening: "
+                    "resolved = os.path.realpath(user_path); "
+                    "assert resolved.startswith(ALLOWED_BASE_DIR). "
+                    "Never pass raw user input to open()."
+                )
             return (
                 "Replace string-built queries with parameterized queries. "
                 "SQLAlchemy ORM example: db.query(User).filter(User.id == user_id). "

@@ -3,28 +3,39 @@ core/detectors/secrets.py
 =========================
 Detects hard-coded secrets in AI-generated code.
 
-This is Violation Type #1 — the most common issue in vibe coding.
-AI agents love to hard-code API keys directly into source files.
+Primary scanner: Yelp's detect-secrets library (30+ built-in plugins
+for high-entropy strings, vendor keys, private keys, etc.).
+Fallback: hand-tuned regex patterns for vendor-specific keys and
+patterns common in vibe-coded projects.
 
 Patterns we catch:
 - API keys (OpenAI, Anthropic, AWS, Stripe, etc.)
 - Database connection strings with credentials
 - Hard-coded passwords in variable assignments
 - JWT secrets and OAuth tokens
-
-TODO for you to expand:
-- Add more vendor-specific key patterns (Twilio, SendGrid, GitHub tokens)
-- Integrate Yelp's detect-secrets library for even broader coverage
-  (pip install detect-secrets) — it has 30+ built-in patterns
+- High-entropy strings via detect-secrets entropy plugins
 """
 
+import logging
+import os
 import re
+import tempfile
+
 from core.detectors.base import BaseDetector
+
+try:
+    from detect_secrets import SecretsCollection
+    from detect_secrets.settings import default_settings
+    _HAS_DETECT_SECRETS = True
+except ImportError:
+    _HAS_DETECT_SECRETS = False
+
+logger = logging.getLogger(__name__)
 
 
 class SecretsDetector(BaseDetector):
 
-    # Patterns that indicate a secret is hard-coded
+    # Regex fallback / supplement patterns.
     # Each tuple: (pattern, description, severity)
     SECRET_PATTERNS = [
         # Generic high-entropy strings assigned to key-sounding variables
@@ -94,17 +105,91 @@ class SecretsDetector(BaseDetector):
     ]
 
     def detect(self, code: str, language: str) -> list[dict]:
-        violations = []
-        lines = code.split('\n')
+        violations: list[dict] = []
+        seen_lines: set[int] = set()
+
+        if _HAS_DETECT_SECRETS:
+            for v in self._scan_with_detect_secrets(code, language):
+                seen_lines.add(v["line"])
+                violations.append(v)
+
+        for v in self._scan_with_regex(code, language):
+            if v["line"] not in seen_lines:
+                violations.append(v)
+                seen_lines.add(v["line"])
+
+        return violations
+
+    # ------------------------------------------------------------------ #
+    #  detect-secrets integration                                         #
+    # ------------------------------------------------------------------ #
+
+    _PLACEHOLDER_TOKENS = {"YOUR_KEY_HERE", "your_key_here"}
+
+    def _scan_with_detect_secrets(self, code: str, language: str) -> list[dict]:
+        """Write *code* to a temp file and scan it with detect-secrets."""
+        ext = {"python": ".py", "javascript": ".js", "typescript": ".ts"}.get(
+            language, ".txt"
+        )
+        tmp_path: str | None = None
+        results: list[dict] = []
+        seen_lines: set[int] = set()
+
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=ext, delete=False, encoding="utf-8"
+            ) as fh:
+                fh.write(code)
+                tmp_path = fh.name
+
+            secrets = SecretsCollection()
+            with default_settings():
+                secrets.scan_file(tmp_path)
+
+            lines = code.split("\n")
+            for _fname, secret_set in secrets.data.items():
+                for secret in secret_set:
+                    line_num = secret.line_number
+                    if line_num in seen_lines:
+                        continue
+                    raw_line = lines[line_num - 1] if line_num <= len(lines) else ""
+                    if any(tok in raw_line for tok in self._PLACEHOLDER_TOKENS):
+                        continue
+                    seen_lines.add(line_num)
+                    results.append({
+                        "type": "hard_coded_secret",
+                        "severity": "critical",
+                        "line": line_num,
+                        "description": (
+                            f"Secret detected by detect-secrets ({secret.type})"
+                        ),
+                        "offending_line": raw_line.strip(),
+                        "fix_hint": self._get_fix_hint("", "", language),
+                    })
+        except Exception as exc:
+            logger.debug(
+                "detect-secrets scan failed, falling back to regex: %s", exc
+            )
+        finally:
+            if tmp_path and os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+
+        return results
+
+    # ------------------------------------------------------------------ #
+    #  Regex fallback                                                     #
+    # ------------------------------------------------------------------ #
+
+    def _scan_with_regex(self, code: str, language: str) -> list[dict]:
+        """Run hand-tuned regex patterns over *code*."""
+        violations: list[dict] = []
+        lines = code.split("\n")
 
         for line_num, line in enumerate(lines, start=1):
-            # Skip comment lines — not actual code
             stripped = line.strip()
-            if stripped.startswith('#') or stripped.startswith('//'):
+            if stripped.startswith("#") or stripped.startswith("//"):
                 continue
-
-            # Skip .env.example style files (these are safe templates)
-            if 'YOUR_KEY_HERE' in line or 'your_key_here' in line:
+            if "YOUR_KEY_HERE" in line or "your_key_here" in line:
                 continue
 
             for pattern, description, severity in self.SECRET_PATTERNS:
@@ -115,9 +200,9 @@ class SecretsDetector(BaseDetector):
                         "line": line_num,
                         "description": description,
                         "offending_line": line.strip(),
-                        "fix_hint": self._get_fix_hint(pattern, line, language)
+                        "fix_hint": self._get_fix_hint(pattern, line, language),
                     })
-                    break  # One violation per line is enough
+                    break
 
         return violations
 

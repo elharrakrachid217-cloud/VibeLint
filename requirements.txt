@@ -9,7 +9,8 @@ fastapi>=0.115.0
 uvicorn>=0.30.0
 
 # Security scanning
-detect-secrets>=1.5.0   # Yelp's battle-tested secret scanner (to integrate in v2)
+detect-secrets>=1.5.0   # Yelp's battle-tested secret scanner (primary secrets detector)
+semgrep>=1.60.0         # Data-flow analysis (optional — degrades gracefully if absent)
 
 # Testing
 pytest>=8.0.0

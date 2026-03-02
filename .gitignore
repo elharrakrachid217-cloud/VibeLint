@@ -8,3 +8,5 @@ vibeguard.db
 dist/
 build/
 .env
+logs/
+_service_runner.bat

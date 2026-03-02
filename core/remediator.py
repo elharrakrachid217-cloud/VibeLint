@@ -35,6 +35,8 @@ class Remediator:
                 remediated = self._add_warning_comment(remediated, violation, language)
             elif violation["type"] == "injection_risk":
                 remediated = self._add_warning_comment(remediated, violation, language)
+            elif violation["type"] == "semgrep_finding":
+                remediated = self._add_warning_comment(remediated, violation, language)
 
         return remediated
 
