@@ -218,7 +218,8 @@
       font-family: var(--font-mono);
       font-size: 13px;
       line-height: 1.75;
-      min-height: 310px;
+      height: 340px;
+      overflow: hidden;
       color: #B8C0CC;
     }
     .terminal-body .line {
@@ -506,28 +507,93 @@
       margin-bottom: 48px;
       max-width: 520px;
     }
-    .setup-tip {
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-      background: rgba(245,166,35,0.06);
-      border: 1px solid rgba(245,166,35,0.12);
-      border-radius: 6px;
-      padding: 16px 20px;
-      margin-bottom: 40px;
+    .ai-prompt-card {
+      background: var(--surface);
+      border: 1px solid rgba(245,166,35,0.18);
+      border-radius: 8px;
+      padding: 28px 28px 24px;
+      margin-bottom: 48px;
+      position: relative;
     }
-    .setup-tip-icon { font-size: 18px; flex-shrink: 0; line-height: 1.55; }
-    .setup-tip p {
-      font-size: 14px;
+    .ai-prompt-card .prompt-label {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ai-prompt-card .prompt-label span { font-size: 15px; }
+    .ai-prompt-card .prompt-desc {
+      font-size: 14.5px;
       color: var(--text-dim);
       line-height: 1.55;
-      margin: 0;
+      margin-bottom: 16px;
     }
-    .setup-tip em {
-      color: var(--accent);
-      font-style: normal;
+    .ai-prompt-box {
+      position: relative;
+      background: var(--terminal-bg);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 6px;
+      padding: 18px 56px 18px 20px;
       font-family: var(--font-mono);
-      font-size: 13px;
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .ai-prompt-box:hover {
+      border-color: rgba(245,166,35,0.3);
+    }
+    .ai-prompt-copy {
+      position: absolute;
+      top: 12px; right: 12px;
+      width: 34px; height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      color: var(--text-dim);
+      font-size: 15px;
+      padding: 0;
+    }
+    .ai-prompt-copy:hover {
+      background: rgba(245,166,35,0.12);
+      border-color: rgba(245,166,35,0.3);
+      color: var(--accent);
+    }
+    .ai-prompt-copy.copied {
+      background: rgba(61,220,132,0.12);
+      border-color: rgba(61,220,132,0.3);
+      color: var(--green);
+    }
+    .ai-prompt-toast {
+      position: absolute;
+      top: -32px; right: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--green);
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .ai-prompt-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    @media (max-width: 768px) {
+      .ai-prompt-card { padding: 20px 18px 18px; }
+      .ai-prompt-box { font-size: 12.5px; padding: 14px 48px 14px 16px; }
     }
     .setup-steps { display: flex; flex-direction: column; gap: 36px; }
     .setup-step {
@@ -978,9 +1044,22 @@
       <h2 class="reveal">Set up in 5 minutes</h2>
       <p class="sub reveal">Python 3.8+ required. That's the only dependency.</p>
 
-      <div class="setup-tip reveal">
-        <span class="setup-tip-icon">💡</span>
-        <p>Don't want to touch the terminal? Copy this entire setup section and paste it to your AI agent in Cursor, Claude Code, Windsurf, etc. Tell it <em>"Install the VibeLint MCP server for me."</em> It'll clone the repo, install deps, and run the auto-installer for you.</p>
+      <div class="ai-prompt-card reveal">
+        <div class="prompt-label"><span>🤖</span> Skip the manual steps — paste this to your AI agent</div>
+        <p class="prompt-desc">Copy the prompt below and paste it into Cursor, Claude Code, Windsurf, or any MCP-compatible AI agent. It will handle everything.</p>
+        <div class="ai-prompt-box" id="ai-prompt-box" onclick="copyPrompt()">
+          <span class="ai-prompt-toast" id="ai-prompt-toast">Copied!</span>
+          <button class="ai-prompt-copy" id="ai-prompt-copy" type="button" aria-label="Copy prompt">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M3.5 10.5h-1a1 1 0 01-1-1v-7a1 1 0 011-1h7a1 1 0 011 1v1"/></svg>
+          </button>
+Install VibeLint as an MCP server in my IDE. Run these commands:
+
+1. git clone https://github.com/elharrakrachid217-cloud/vibelint.git
+2. cd vibelint
+3. pip install -r requirements.txt
+4. python install_mcp.py
+
+Then restart the IDE so it picks up the new MCP server.</div>
       </div>
 
       <div class="setup-steps">
