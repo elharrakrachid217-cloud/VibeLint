@@ -1,6 +1,6 @@
-# Install VibeGuard
+# Install VibeLint
 
-VibeGuard is an MCP server that scans AI-generated code for security issues before it reaches your files.
+VibeLint is an MCP server that scans AI-generated code for security issues before it reaches your files.
 
 > **Easiest way to install:** Copy the content of this file and give it to your AI agent (Cursor, Claude Code, Windsurf, Antigravity, etc.) with the message: *"Install this MCP for me."* It will handle everything below.
 
@@ -19,8 +19,8 @@ If you don't have Python, download it from [python.org](https://www.python.org/d
 ## Step 1 — Clone and install
 
 ```
-git clone https://github.com/elharrakrachid217-cloud/vibeguard.git
-cd vibeguard
+git clone https://github.com/elharrakrachid217-cloud/VibeLint.git
+cd VibeLint
 pip install -r requirements.txt
 ```
 
@@ -31,16 +31,16 @@ Open your IDE's MCP configuration file and add this:
 ```json
 {
   "mcpServers": {
-    "vibeguard": {
+    "vibelint": {
       "command": "python",
       "args": ["server.py"],
-      "cwd": "/absolute/path/to/vibeguard"
+      "cwd": "/absolute/path/to/vibelint"
     }
   }
 }
 ```
 
-Replace `/absolute/path/to/vibeguard` with the real path to the folder you just cloned.
+Replace `/absolute/path/to/vibelint` with the real path to the folder you just cloned.
 
 ## Step 3 — Restart your IDE
 
@@ -50,10 +50,10 @@ Reload or restart your IDE so it picks up the new MCP server. Done.
 
 ## Verify (optional)
 
-Run this inside the `vibeguard` folder:
+Run this inside the `vibelint` folder:
 
 ```
 python server.py
 ```
 
-If you see `VibeGuard MCP Server starting...` — everything is working. You can close it; your IDE starts the server on its own.
+If you see `VibeLint MCP Server starting...` — everything is working. You can close it; your IDE starts the server on its own.

@@ -1,10 +1,10 @@
-# 🛡️ VibeGuard
+# 🛡️ VibeLint
 
 ![Tests](https://img.shields.io/badge/tests-65%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-Every time an AI writes code for you, it might be leaking your API keys, breaking your auth, or opening your database to injection attacks. **VibeGuard catches it before it ever touches your files.**
+Every time an AI writes code for you, it might be leaking your API keys, breaking your auth, or opening your database to injection attacks. **VibeLint catches it before it ever touches your files.**
 
 - 🔑 Hard-coded secrets (API keys, tokens, database credentials, `process.env` fallback bypasses, Next.js secrets)
 - 🔐 Insecure authentication patterns (MD5 passwords, JWT without verification, localStorage JWT storage, NextAuth misconfigs)
@@ -17,8 +17,8 @@ Every time an AI writes code for you, it might be leaking your API keys, breakin
 ### 1. Clone and install dependencies
 
 ```bash
-git clone https://github.com/elharrakrachid217-cloud/vibeguard.git
-cd vibeguard
+git clone https://github.com/elharrakrachid217-cloud/VibeLint.git
+cd VibeLint
 pip install -r requirements.txt
 ```
 
@@ -32,17 +32,17 @@ All tests should pass. If they do — your scanner is working.
 
 ### 3. Connect to your IDE / AI agent
 
-VibeGuard uses the **Model Context Protocol (MCP)** standard and works with any MCP-compatible client — Cursor, Windsurf, Claude Desktop, VS Code (Copilot), and others.
+VibeLint uses the **Model Context Protocol (MCP)** standard and works with any MCP-compatible client — Cursor, Windsurf, Claude Desktop, VS Code (Copilot), and others.
 
-Create or edit your IDE's MCP configuration file and add a `vibeguard` entry. The typical config looks like:
+Create or edit your IDE's MCP configuration file and add a `vibelint` entry. The typical config looks like:
 
 ```json
 {
   "mcpServers": {
-    "vibeguard": {
+    "vibelint": {
       "command": "python",
       "args": ["server.py"],
-      "cwd": "/absolute/path/to/vibeguard"
+      "cwd": "/absolute/path/to/vibelint"
     }
   }
 }
@@ -52,12 +52,12 @@ Replace the `cwd` value with the **absolute path** to this folder:
 
 **Mac/Linux example:**
 ```json
-"cwd": "/Users/yourname/projects/vibeguard"
+"cwd": "/Users/yourname/projects/vibelint"
 ```
 
 **Windows example:**
 ```json
-"cwd": "C:\\Users\\yourname\\projects\\vibeguard"
+"cwd": "C:\\Users\\yourname\\projects\\vibelint"
 ```
 
 Where this config file lives depends on your IDE:
@@ -79,7 +79,7 @@ python server.py
 
 You should see:
 ```
-🛡️  VibeGuard MCP Server starting...
+🛡️  VibeLint MCP Server starting...
    Waiting for MCP client to connect...
 ```
 
@@ -87,7 +87,7 @@ You should see:
 
 ## Installation as Background Service
 
-You can register VibeGuard to start automatically when you log in.
+You can register VibeLint to start automatically when you log in.
 The installer auto-detects your OS and uses the native service mechanism.
 
 ### Install
@@ -100,30 +100,30 @@ python install_service.py
 
 | OS | Mechanism | Service file location |
 |---|---|---|
-| **Windows** | Task Scheduler (`schtasks`) | Visible in Task Scheduler as "VibeGuard" |
-| **macOS** | launchd (plist) | `~/Library/LaunchAgents/com.vibeguard.server.plist` |
-| **Linux** | systemd (user unit) | `~/.config/systemd/user/vibeguard.service` |
+| **Windows** | Task Scheduler (`schtasks`) | Visible in Task Scheduler as "VibeLint" |
+| **macOS** | launchd (plist) | `~/Library/LaunchAgents/com.vibelint.server.plist` |
+| **Linux** | systemd (user unit) | `~/.config/systemd/user/vibelint.service` |
 
 You should see output like:
 
 ```
-🛡️  VibeGuard Service Installer
+🛡️  VibeLint Service Installer
   Python:  /usr/bin/python3
-  Server:  /home/you/vibeguard/server.py
+  Server:  /home/you/vibelint/server.py
 
 🐧  Detected: Linux
   Installing via systemd (user service) …
 
-  ✓ Log directory: /home/you/vibeguard/logs
+  ✓ Log directory: /home/you/vibelint/logs
   ✓ Made executable: server.py
-  ✓ Unit file written: /home/you/.config/systemd/user/vibeguard.service
+  ✓ Unit file written: /home/you/.config/systemd/user/vibelint.service
   ✓ Service enabled (auto-starts at login)
-  ✓ Service started — VibeGuard is running
+  ✓ Service started — VibeLint is running
 
-  Done! VibeGuard will auto-start on next login.
+  Done! VibeLint will auto-start on next login.
 ```
 
-Logs are written to `vibeguard/logs/vibeguard.log`.
+Logs are written to `vibelint/logs/vibelint.log`.
 
 ### Uninstall
 
@@ -138,7 +138,7 @@ Log files in `logs/` are preserved.
 
 - **Windows "Access is denied"** — right-click your terminal and choose "Run as administrator", then re-run `python install_service.py`.
 - **macOS/Linux permission errors** — check that `~/Library/LaunchAgents/` (Mac) or `~/.config/systemd/user/` (Linux) is writable by your user.
-- **Service registered but not running** — check `logs/vibeguard.log` for errors. The most common cause is a missing dependency (`pip install -r requirements.txt`).
+- **Service registered but not running** — check `logs/vibelint.log` for errors. The most common cause is a missing dependency (`pip install -r requirements.txt`).
 
 ---
 
@@ -149,9 +149,9 @@ You describe a feature in your IDE
         ↓
 The AI agent generates code
         ↓
-Your IDE calls VibeGuard's security_check tool via MCP
+Your IDE calls VibeLint's security_check tool via MCP
         ↓
-VibeGuard scans for secrets, insecure auth, injection risks
+VibeLint scans for secrets, insecure auth, injection risks
         ↓
 Returns: approved ✅ or violations 🚨 + auto-fixed code
         ↓
@@ -163,7 +163,7 @@ You review and accept the clean version
 ## Project Structure
 
 ```
-vibeguard/
+vibelint/
 ├── server.py                  # MCP server — entry point, this is what your IDE connects to
 ├── requirements.txt
 ├── .cursor/
