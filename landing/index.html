@@ -1354,6 +1354,32 @@ python server.py
   handleForm('waitlist-form', 'waitlist-confirm');
 
   /* ═══════════════════════════════════════
+     AI Prompt Copy
+     ═══════════════════════════════════════ */
+  window.copyPrompt = function () {
+    var box = document.getElementById('ai-prompt-box');
+    var toast = document.getElementById('ai-prompt-toast');
+    var btn = document.getElementById('ai-prompt-copy');
+    var text = 'Install VibeLint as an MCP server in my IDE. Run these commands:\n\n'
+      + '1. git clone https://github.com/elharrakrachid217-cloud/vibelint.git\n'
+      + '2. cd vibelint\n'
+      + '3. pip install -r requirements.txt\n'
+      + '4. python install_mcp.py\n\n'
+      + 'Then restart the IDE so it picks up the new MCP server.';
+
+    navigator.clipboard.writeText(text).then(function () {
+      btn.classList.add('copied');
+      toast.classList.add('show');
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg>';
+      setTimeout(function () {
+        btn.classList.remove('copied');
+        toast.classList.remove('show');
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M3.5 10.5h-1a1 1 0 01-1-1v-7a1 1 0 011-1h7a1 1 0 011 1v1"/></svg>';
+      }, 2000);
+    });
+  };
+
+  /* ═══════════════════════════════════════
      Scroll Reveal — IntersectionObserver
      ═══════════════════════════════════════ */
   var reveals = document.querySelectorAll('.reveal');
