@@ -980,7 +980,7 @@
 
       <div class="setup-tip reveal">
         <span class="setup-tip-icon">💡</span>
-        <p>Or skip the manual steps — copy this entire setup section and paste it to your AI agent in Cursor, Claude Code, Windsurf, Antigravity, etc. Tell it <em>"Install the VibeLint MCP server for me."</em> It'll handle the rest.</p>
+        <p>Don't want to touch the terminal? Copy this entire setup section and paste it to your AI agent in Cursor, Claude Code, Windsurf, etc. Tell it <em>"Install the VibeLint MCP server for me."</em> It'll clone the repo, install deps, and run the auto-installer for you.</p>
       </div>
 
       <div class="setup-steps">
@@ -990,8 +990,8 @@
           <div>
             <h3>Clone and install</h3>
             <p>Pull the repo and install the Python dependencies.</p>
-            <div class="setup-code">git clone https://github.com/elharrakrachid217-cloud/VibeLint.git
-cd VibeLint
+            <div class="setup-code">git clone https://github.com/elharrakrachid217-cloud/vibelint.git
+cd vibelint
 pip install -r requirements.txt</div>
           </div>
         </div>
@@ -999,24 +999,13 @@ pip install -r requirements.txt</div>
         <div class="setup-step reveal">
           <div class="setup-step-num">2</div>
           <div>
-            <h3>Add to your IDE's MCP config</h3>
-            <p>Open your IDE's MCP configuration file and add the VibeLint entry. Replace the path with where you cloned it.</p>
-            <div class="setup-code">{
-  <span class="key">"mcpServers"</span>: {
-    <span class="key">"vibelint"</span>: {
-      <span class="key">"command"</span>: <span class="string">"python"</span>,
-      <span class="key">"args"</span>: [<span class="string">"server.py"</span>],
-      <span class="key">"cwd"</span>: <span class="string">"/absolute/path/to/vibelint"</span>
-    }
-  }
-}</div>
-            <p class="setup-config-note">Config file location depends on your IDE:</p>
-            <div class="ide-paths">
-              <span><strong>Cursor</strong> — <code>.cursor/mcp.json</code></span>
-              <span><strong>Windsurf</strong> — <code>.windsurf/mcp.json</code></span>
-              <span><strong>Claude Desktop</strong> — <code>claude_desktop_config.json</code></span>
-              <span><strong>VS Code</strong> — <code>.vscode/mcp.json</code></span>
-            </div>
+            <h3>Run the auto-installer</h3>
+            <p>This detects your Python path, resolves the server location, and writes the correct config for your IDE — no manual JSON editing needed.</p>
+            <div class="setup-code">python install_mcp.py</div>
+            <p class="setup-config-note" style="margin-top:14px">Supports Cursor, Windsurf, and Claude Desktop. To target a specific IDE:</p>
+            <div class="setup-code" style="margin-top:8px">python install_mcp.py --ide cursor
+python install_mcp.py --ide windsurf
+python install_mcp.py --ide claude</div>
           </div>
         </div>
 
@@ -1027,7 +1016,30 @@ pip install -r requirements.txt</div>
             <p>Reload the window so it picks up the new MCP server. That's it — VibeLint is now scanning every AI-generated file automatically.</p>
             <div class="setup-code"><span class="comment"># Optional: verify it's working</span>
 python server.py
-<span class="comment"># You should see: VibeLint MCP Server starting...</span></div>
+<span class="comment"># You should see: VibeLint — AI Code Security Scanner</span></div>
+          </div>
+        </div>
+
+        <div class="setup-step reveal" style="margin-top:20px">
+          <div class="setup-step-num" style="background:var(--surface);color:var(--text-dim);border:1px solid rgba(255,255,255,0.08)">?</div>
+          <div>
+            <h3>Manual setup (if you prefer)</h3>
+            <p>Open your IDE's MCP config and add this. Use <strong>full absolute paths</strong> for both the Python executable and server.py — do not use <code>cwd</code>.</p>
+            <div class="setup-code">{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"vibelint"</span>: {
+      <span class="key">"command"</span>: <span class="string">"/absolute/path/to/python"</span>,
+      <span class="key">"args"</span>: [<span class="string">"/absolute/path/to/vibelint/server.py"</span>]
+    }
+  }
+}</div>
+            <p class="setup-config-note">Config file location depends on your IDE:</p>
+            <div class="ide-paths">
+              <span><strong>Cursor</strong> — <code>~/.cursor/mcp.json</code></span>
+              <span><strong>Windsurf</strong> — <code>~/.codeium/windsurf/mcp_config.json</code></span>
+              <span><strong>Claude Desktop</strong> — <code>claude_desktop_config.json</code></span>
+              <span><strong>VS Code</strong> — <code>.vscode/mcp.json</code></span>
+            </div>
           </div>
         </div>
 
