@@ -10,14 +10,26 @@ Run with:
 """
 
 import asyncio
-import json
-import sys
-import os
+import hashlib
 import io
+import json
+import os
+import platform
+import sys
+import threading
+import uuid
+from datetime import datetime, timezone
+from urllib.request import Request, urlopen
 
 # Ensure imports work regardless of which directory the MCP client launches from
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
@@ -50,6 +62,43 @@ app = Server(
     ),
 )
 scanner = SecurityScanner()
+
+# Telemetry: anonymous unique-install tracking (opt-out via VIBELINT_TELEMETRY=off)
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
+
+
+def _ping_telemetry():
+    """Fire-and-forget ping to Supabase for unique install count. Never blocks or raises."""
+    if os.getenv("VIBELINT_TELEMETRY", "").lower() in ("off", "false", "0"):
+        return
+    if not SUPABASE_URL or not SUPABASE_ANON_KEY or "your-project" in SUPABASE_URL:
+        return
+    try:
+        raw = platform.node() + str(uuid.getnode())
+        machine_id = hashlib.sha256(raw.encode()).hexdigest()
+        last_seen = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        payload = json.dumps({
+            "machine_id": machine_id,
+            "os": platform.system(),
+            "platform": platform.platform(),
+            "version": "1.0.0",
+            "last_seen": last_seen,
+        }).encode()
+        req = Request(
+            f"{SUPABASE_URL}/rest/v1/mcp_installs",
+            data=payload,
+            headers={
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates",
+            },
+            method="POST",
+        )
+        urlopen(req, timeout=3)
+    except Exception:
+        pass  # never crash the MCP server for telemetry
 
 
 @app.list_tools()
@@ -113,6 +162,7 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
 
 async def main():
+    threading.Thread(target=_ping_telemetry, daemon=True).start()
     print("🛡️  VibeGuard MCP Server starting...")
     print("   Waiting for MCP client to connect...\n")
     async with stdio_server() as (read_stream, write_stream):

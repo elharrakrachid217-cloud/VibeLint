@@ -748,6 +748,92 @@
     footer a:hover { color: var(--accent); }
     footer .sep { margin: 0 6px; opacity: 0.3; }
 
+    /* ── FAQ ── */
+    .faq-section { padding: 100px 0 40px; }
+    .faq-section h2 {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: clamp(26px, 3.5vw, 38px);
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+    .faq-section .faq-sub {
+      color: var(--text-dim);
+      font-size: 15.5px;
+      margin-bottom: 48px;
+      max-width: 520px;
+    }
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      max-width: 760px;
+    }
+    .faq-item {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: border-color 0.25s;
+    }
+    .faq-item.open {
+      border-color: rgba(245,166,35,0.18);
+    }
+    .faq-question {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      width: 100%;
+      padding: 20px 24px;
+      font-family: var(--font-body);
+      font-size: 15.5px;
+      font-weight: 600;
+      color: var(--text);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      line-height: 1.45;
+      transition: color 0.2s;
+    }
+    .faq-question:hover { color: var(--accent); }
+    .faq-icon {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      color: var(--text-dim);
+      transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.2s;
+    }
+    .faq-item.open .faq-icon {
+      transform: rotate(45deg);
+      color: var(--accent);
+    }
+    .faq-answer-wrap {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .faq-answer {
+      padding: 0 24px 22px;
+      font-size: 14.5px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+    .faq-answer strong { color: var(--text); font-weight: 500; }
+    .faq-answer code {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      background: rgba(255,255,255,0.05);
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: #B8C0CC;
+    }
+    @media (max-width: 768px) {
+      .faq-question { padding: 16px 18px; font-size: 14.5px; }
+      .faq-answer { padding: 0 18px 18px; font-size: 13.5px; }
+    }
+
     /* ── Responsive ── */
     @media (max-width: 768px) {
       .hero { padding: 120px 0 52px; }
@@ -759,7 +845,7 @@
       .terminal-body {
         font-size: 11.5px;
         padding: 16px;
-        height: 270px;
+        min-height: 270px;
       }
       .email-form {
         flex-direction: column;
@@ -781,7 +867,7 @@
       .terminal-wrap { margin-top: 36px; }
     }
     @media (max-width: 480px) {
-      .terminal-body { font-size: 10.5px; height: 240px; }
+      .terminal-body { font-size: 10.5px; min-height: 240px; }
       .tab-btn { padding: 8px 14px; font-size: 12px; }
       .code-block pre { font-size: 11.5px; padding: 12px; }
     }
@@ -808,6 +894,7 @@
         <a href="#how">How it works</a>
         <a href="#catches">What it catches</a>
         <a href="#setup">Setup</a>
+        <a href="#faq">FAQ</a>
         <a href="#waitlist">Early access</a>
       </div>
     </div>
@@ -1144,6 +1231,98 @@ python server.py
     </div>
   </section>
 
+  <!-- FAQ -->
+  <section class="faq-section" id="faq">
+    <div class="container">
+      <h2 class="reveal">Frequently asked questions</h2>
+      <p class="faq-sub reveal">Everything else you might want to know before getting started.</p>
+
+      <div class="faq-list">
+
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">
+            What languages does VibeLint support?
+            <svg class="faq-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
+          </button>
+          <div class="faq-answer-wrap"><div class="faq-answer">
+            VibeLint scans <strong>Python, JavaScript, TypeScript, Go, Java, Ruby, C, C++, PHP, and Kotlin</strong> out of the box via Semgrep-powered rules. It focuses on the security patterns that AI models get wrong most often — hard-coded secrets, injection flaws, broken auth — across all of these languages.
+          </div></div>
+        </div>
+
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">
+            Does it run automatically or do I have to trigger it manually?
+            <svg class="faq-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
+          </button>
+          <div class="faq-answer-wrap"><div class="faq-answer">
+            It's <strong>fully automatic</strong>. VibeLint runs as an MCP server inside your IDE. Every time your AI agent generates or modifies code, VibeLint intercepts and scans it before the code is written to your files. You don't need to run any commands or click any buttons — it's always watching in the background.
+          </div></div>
+        </div>
+
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">
+            Which IDEs is it compatible with?
+            <svg class="faq-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
+          </button>
+          <div class="faq-answer-wrap"><div class="faq-answer">
+            VibeLint works with any IDE or tool that supports the <strong>MCP (Model Context Protocol)</strong> standard. Right now that includes <strong>Cursor, Windsurf, Claude Desktop, and VS Code</strong>. The auto-installer handles configuration for Cursor, Windsurf, and Claude Desktop. For other MCP-compatible editors, you can add the config manually in a few seconds.
+          </div></div>
+        </div>
+
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">
+            Is VibeLint free?
+            <svg class="faq-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
+          </button>
+          <div class="faq-answer-wrap"><div class="faq-answer">
+            Yes. VibeLint is <strong>free and open source</strong>. There's no subscription, no usage limit, and no account required. Clone the repo, install it, and start scanning. We may offer a premium tier with advanced rules and team features down the road, but the core scanner will always be free.
+          </div></div>
+        </div>
+
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">
+            Does it slow down my coding workflow?
+            <svg class="faq-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
+          </button>
+          <div class="faq-answer-wrap"><div class="faq-answer">
+            No. Scans run in <strong>milliseconds</strong> — they happen inline while your AI agent generates code. There's no separate build step, no waiting for a CI pipeline, and no context switching. The overhead is invisible in practice.
+          </div></div>
+        </div>
+
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">
+            Does it only work on AI-generated code, or can I scan my own code too?
+            <svg class="faq-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
+          </button>
+          <div class="faq-answer-wrap"><div class="faq-answer">
+            VibeLint is <strong>designed for AI-generated code</strong>, but you can also run the scanner manually on any file or project by calling <code>python server.py</code> directly. The security rules apply to all code regardless of who wrote it.
+          </div></div>
+        </div>
+
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">
+            Can I customize which rules are enabled?
+            <svg class="faq-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
+          </button>
+          <div class="faq-answer-wrap"><div class="faq-answer">
+            Yes. VibeLint ships with a sensible default ruleset, but you can enable, disable, or adjust rules to fit your project. You can also write your own custom Semgrep rules and drop them in. Full documentation is in the repo.
+          </div></div>
+        </div>
+
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">
+            Does it replace a full security audit?
+            <svg class="faq-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
+          </button>
+          <div class="faq-answer-wrap"><div class="faq-answer">
+            No — and it's not meant to. VibeLint is a <strong>first line of defense</strong> that catches the most common, most dangerous patterns AI models produce. It dramatically reduces your attack surface, but for production systems you should still conduct thorough security reviews and penetration testing.
+          </div></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- Waitlist -->
   <section class="waitlist-section" id="waitlist">
     <div class="container">
@@ -1378,6 +1557,35 @@ python server.py
       }, 2000);
     });
   };
+
+  /* ═══════════════════════════════════════
+     FAQ Accordion
+     ═══════════════════════════════════════ */
+  document.querySelectorAll('.faq-question').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var item = btn.closest('.faq-item');
+      var wrap = item.querySelector('.faq-answer-wrap');
+      var isOpen = item.classList.contains('open');
+
+      document.querySelectorAll('.faq-item.open').forEach(function (openItem) {
+        if (openItem !== item) {
+          openItem.classList.remove('open');
+          openItem.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+          openItem.querySelector('.faq-answer-wrap').style.maxHeight = null;
+        }
+      });
+
+      if (isOpen) {
+        item.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        wrap.style.maxHeight = null;
+      } else {
+        item.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        wrap.style.maxHeight = wrap.scrollHeight + 'px';
+      }
+    });
+  });
 
   /* ═══════════════════════════════════════
      Scroll Reveal — IntersectionObserver
