@@ -155,6 +155,81 @@
     }
     .github-nav:hover, .support-nav:hover { border-color: var(--accent); color: var(--accent); }
     .github-nav svg, .support-nav svg { flex-shrink: 0; }
+    .support-nav { cursor: pointer; }
+
+    /* ── Support Modal ── */
+    .support-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.25s, visibility 0.25s;
+    }
+    .support-overlay.open { opacity: 1; visibility: visible; }
+    .support-modal {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 36px 32px 28px;
+      width: 100%; max-width: 440px;
+      position: relative;
+      transform: translateY(12px);
+      transition: transform 0.25s;
+    }
+    .support-overlay.open .support-modal { transform: translateY(0); }
+    .support-modal h3 {
+      font-family: var(--font-heading);
+      font-size: 20px; font-weight: 700;
+      margin: 0 0 4px; color: var(--text);
+    }
+    .support-modal .modal-sub {
+      font-size: 14px; color: var(--text-dim);
+      margin: 0 0 24px;
+    }
+    .support-modal .close-btn {
+      position: absolute; top: 14px; right: 14px;
+      background: none; border: none; color: var(--text-dim);
+      cursor: pointer; padding: 4px; line-height: 0;
+      transition: color 0.2s;
+    }
+    .support-modal .close-btn:hover { color: var(--text); }
+    .support-modal label {
+      display: block; font-size: 13px; font-weight: 600;
+      color: var(--text-dim); margin-bottom: 6px;
+    }
+    .support-modal input, .support-modal textarea {
+      width: 100%; padding: 11px 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; color: var(--text);
+      font-family: var(--font-body); font-size: 14px;
+      margin-bottom: 16px; outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .support-modal input:focus, .support-modal textarea:focus {
+      border-color: rgba(245,166,35,0.5);
+    }
+    .support-modal input::placeholder, .support-modal textarea::placeholder { color: #4A5060; }
+    .support-modal textarea { resize: vertical; min-height: 100px; }
+    .support-modal .submit-btn {
+      width: 100%; padding: 12px;
+      background: var(--accent); color: #000;
+      border: none; border-radius: 8px;
+      font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s, transform 0.1s;
+    }
+    .support-modal .submit-btn:hover { background: #E09015; }
+    .support-modal .submit-btn:active { transform: scale(0.97); }
+    .support-modal .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .support-confirm {
+      text-align: center; padding: 24px 0;
+      font-size: 16px; color: var(--text); display: none;
+    }
+    .support-confirm.show { display: block; }
+    .support-confirm svg { margin-bottom: 12px; }
 
     /* ── Hero ── */
     .hero {
@@ -915,10 +990,10 @@
         <a href="#waitlist">Early access</a>
       </div>
       <div class="nav-buttons">
-        <a href="mailto:support@vibelint.dev" class="support-nav">
+        <button type="button" class="support-nav" id="open-support">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 4-10 8L2 4"/></svg>
           Support
-        </a>
+        </button>
         <a href="https://github.com/elharrakrachid217-cloud/VibeLint" class="github-nav" target="_blank" rel="noopener">
           <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.64 7.64 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
           GitHub
@@ -1366,6 +1441,30 @@ python server.py
     </div>
   </section>
 
+  <!-- Support Modal -->
+  <div class="support-overlay" id="support-overlay">
+    <div class="support-modal">
+      <button type="button" class="close-btn" id="close-support" aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="5" x2="15" y2="15"/><line x1="15" y1="5" x2="5" y2="15"/></svg>
+      </button>
+      <h3>Contact Support</h3>
+      <p class="modal-sub">We usually reply within 24 hours.</p>
+      <form id="support-form" autocomplete="off">
+        <label for="support-name">Full name</label>
+        <input type="text" id="support-name" placeholder="Your full name" required>
+        <label for="support-email">Email</label>
+        <input type="email" id="support-email" placeholder="you@example.com" required>
+        <label for="support-msg">Message</label>
+        <textarea id="support-msg" placeholder="How can we help you?" required></textarea>
+        <button type="submit" class="submit-btn" id="support-submit">Submit</button>
+      </form>
+      <div class="support-confirm" id="support-confirm">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="20" r="18"/><path d="M12 20l5.5 5.5L28 15"/></svg>
+        <p>Thanks! We'll get back to you soon.</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer -->
   <footer>
     <div class="container">
@@ -1374,7 +1473,7 @@ python server.py
         <span class="sep">·</span>
         <a href="https://vibelint.dev">vibelint.dev</a>
         <span class="sep">·</span>
-        <a href="mailto:hello@vibelint.dev">hello@vibelint.dev</a>
+        <a href="mailto:support@vibelint.dev">support@vibelint.dev</a>
       </p>
     </div>
   </footer>
@@ -1582,6 +1681,64 @@ python server.py
   }
   handleForm('hero-form', 'hero-confirm', 'hero');
   handleForm('waitlist-form', 'waitlist-confirm', 'waitlist');
+
+  /* ═══════════════════════════════════════
+     Support Modal
+     ═══════════════════════════════════════ */
+  (function () {
+    var overlay = document.getElementById('support-overlay');
+    var openBtn = document.getElementById('open-support');
+    var closeBtn = document.getElementById('close-support');
+    var form = document.getElementById('support-form');
+    var confirmEl = document.getElementById('support-confirm');
+
+    function openModal() { overlay.classList.add('open'); }
+    function closeModal() {
+      overlay.classList.remove('open');
+      setTimeout(function () {
+        form.reset();
+        form.style.display = '';
+        confirmEl.classList.remove('show');
+        document.getElementById('support-submit').disabled = false;
+        document.getElementById('support-submit').textContent = 'Submit';
+      }, 300);
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closeModal();
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('support-submit');
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+
+      var payload = {
+        full_name: document.getElementById('support-name').value.trim(),
+        email: document.getElementById('support-email').value.trim(),
+        message: document.getElementById('support-msg').value.trim()
+      };
+
+      fetch(SUPA_URL + '/rest/v1/support_requests', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPA_KEY,
+          'Authorization': 'Bearer ' + SUPA_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      }).then(function () {
+        form.style.display = 'none';
+        confirmEl.classList.add('show');
+      }).catch(function () {
+        form.style.display = 'none';
+        confirmEl.classList.add('show');
+      });
+    });
+  })();
 
   /* ═══════════════════════════════════════
      AI Prompt Copy
