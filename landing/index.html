@@ -1735,6 +1735,7 @@ python server.py
       e.preventDefault();
       var email = form.querySelector('input[type="email"]').value.trim();
       var btn = form.querySelector('button');
+      var originalText = btn.textContent;
       btn.disabled = true;
       btn.textContent = 'Submitting…';
 
@@ -1744,19 +1745,27 @@ python server.py
           'apikey': SUPA_KEY,
           'Authorization': 'Bearer ' + SUPA_KEY,
           'Content-Type': 'application/json',
-          'Prefer': 'resolution=ignore-duplicates'
+          'Prefer': 'return=minimal, resolution=ignore-duplicates'
         },
         body: JSON.stringify({ email: email, source: source })
-      }).then(function () {
+      }).then(function (res) {
+        if (!res.ok) {
+          return res.text().then(function (body) { throw new Error(body); });
+        }
         form.style.display = 'none';
         var note = form.parentElement.querySelector('.form-note');
         if (note) note.style.display = 'none';
         confirmEl.classList.add('show');
-      }).catch(function () {
-        form.style.display = 'none';
+      }).catch(function (err) {
+        console.error('Waitlist insert failed (' + source + '):', err);
+        btn.disabled = false;
+        btn.textContent = originalText;
         var note = form.parentElement.querySelector('.form-note');
-        if (note) note.style.display = 'none';
-        confirmEl.classList.add('show');
+        if (note) {
+          note.textContent = 'Something went wrong — please try again.';
+          note.style.display = '';
+          note.style.color = '#ef4444';
+        }
       });
     });
   }
@@ -1841,15 +1850,28 @@ python server.py
         headers: {
           'apikey': SUPA_KEY,
           'Authorization': 'Bearer ' + SUPA_KEY,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
         },
         body: JSON.stringify(payload)
-      }).then(function () {
+      }).then(function (res) {
+        if (!res.ok) {
+          return res.text().then(function (body) { throw new Error(body); });
+        }
         form.style.display = 'none';
         confirmEl.classList.add('show');
-      }).catch(function () {
-        form.style.display = 'none';
-        confirmEl.classList.add('show');
+      }).catch(function (err) {
+        console.error('Support request failed:', err);
+        btn.disabled = false;
+        btn.textContent = 'Submit';
+        var errMsg = document.createElement('p');
+        errMsg.textContent = 'Something went wrong — please try again.';
+        errMsg.style.color = '#ef4444';
+        errMsg.style.marginTop = '0.5rem';
+        errMsg.className = 'support-error';
+        var existing = form.querySelector('.support-error');
+        if (existing) existing.remove();
+        form.appendChild(errMsg);
       });
     });
   })();

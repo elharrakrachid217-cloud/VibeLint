@@ -12,4 +12,6 @@ ALTER TABLE waitlist_emails ENABLE ROW LEVEL SECURITY;
 
 -- Allow anonymous inserts from the landing page (anon key)
 CREATE POLICY "allow_anon_insert" ON waitlist_emails
-  FOR INSERT WITH CHECK (true);
+  FOR INSERT
+  TO anon
+  WITH CHECK (true);

@@ -13,4 +13,6 @@ ALTER TABLE support_requests ENABLE ROW LEVEL SECURITY;
 
 -- Allow anonymous inserts from the landing page (anon key)
 CREATE POLICY "allow_anon_insert" ON support_requests
-  FOR INSERT WITH CHECK (true);
+  FOR INSERT
+  TO anon
+  WITH CHECK (true);
