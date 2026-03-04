@@ -157,11 +157,67 @@
     .github-nav svg, .support-nav svg { flex-shrink: 0; }
     .support-nav { cursor: pointer; }
 
+    /* ── Mobile Menu ── */
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      padding: 4px;
+      line-height: 0;
+      z-index: 102;
+    }
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 99;
+      background: rgba(8, 11, 14, 0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 80px 24px 32px;
+      flex-direction: column;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      transform: translateY(-100%);
+      transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .mobile-menu.open {
+      transform: translateY(0);
+    }
+    .mobile-menu a, .mobile-menu button.support-nav {
+      font-family: var(--font-body);
+      font-size: 16px;
+      color: var(--text-dim);
+      text-decoration: none;
+      padding: 12px 0;
+      border: none;
+      background: none;
+      text-align: left;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .mobile-menu a:hover, .mobile-menu button.support-nav:hover { color: var(--text); }
+    .mobile-menu .mobile-menu-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .mobile-menu .mobile-menu-buttons .support-nav,
+    .mobile-menu .mobile-menu-buttons .github-nav {
+      flex: 1;
+      justify-content: center;
+    }
+
     /* ── Support Modal ── */
     .support-overlay {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       z-index: 9999;
       display: flex; align-items: center; justify-content: center;
       opacity: 0; visibility: hidden;
@@ -169,7 +225,7 @@
     }
     .support-overlay.open { opacity: 1; visibility: visible; }
     .support-modal {
-      background: var(--card);
+      background: var(--surface);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 14px;
       padding: 36px 32px 28px;
@@ -955,6 +1011,9 @@
       .code-compare { grid-template-columns: 1fr; }
       .local-card { padding: 28px 22px; }
       .nav-links { display: none; }
+      .nav-buttons { display: none; }
+      .hamburger { display: block; }
+      .mobile-menu { display: flex; }
       .hero h1 { letter-spacing: -1px; }
       .terminal-wrap { margin-top: 36px; }
     }
@@ -999,8 +1058,30 @@
           GitHub
         </a>
       </div>
+      <button type="button" class="hamburger" id="hamburger-btn" aria-label="Open menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+      </button>
     </div>
   </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="#how" class="mobile-menu-link">How it works</a>
+    <a href="#catches" class="mobile-menu-link">What it catches</a>
+    <a href="#setup" class="mobile-menu-link">Setup</a>
+    <a href="#faq" class="mobile-menu-link">FAQ</a>
+    <a href="#waitlist" class="mobile-menu-link">Early access</a>
+    <div class="mobile-menu-buttons">
+      <button type="button" class="support-nav" id="open-support-mobile">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 4-10 8L2 4"/></svg>
+        Support
+      </button>
+      <a href="https://github.com/elharrakrachid217-cloud/VibeLint" class="github-nav" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.64 7.64 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </div>
 
   <!-- Hero -->
   <section class="hero" id="hero">
@@ -1683,16 +1764,48 @@ python server.py
   handleForm('waitlist-form', 'waitlist-confirm', 'waitlist');
 
   /* ═══════════════════════════════════════
+     Mobile Menu
+     ═══════════════════════════════════════ */
+  (function () {
+    var hamburger = document.getElementById('hamburger-btn');
+    var mobileMenu = document.getElementById('mobile-menu');
+    var menuLinks = mobileMenu.querySelectorAll('.mobile-menu-link');
+    var isOpen = false;
+
+    function toggleMenu() {
+      isOpen = !isOpen;
+      mobileMenu.classList.toggle('open', isOpen);
+      hamburger.innerHTML = isOpen
+        ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>'
+        : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>';
+    }
+
+    function closeMenu() {
+      if (isOpen) toggleMenu();
+    }
+
+    hamburger.addEventListener('click', toggleMenu);
+    menuLinks.forEach(function (link) { link.addEventListener('click', closeMenu); });
+  })();
+
+  /* ═══════════════════════════════════════
      Support Modal
      ═══════════════════════════════════════ */
   (function () {
     var overlay = document.getElementById('support-overlay');
     var openBtn = document.getElementById('open-support');
+    var openBtnMobile = document.getElementById('open-support-mobile');
     var closeBtn = document.getElementById('close-support');
     var form = document.getElementById('support-form');
     var confirmEl = document.getElementById('support-confirm');
 
-    function openModal() { overlay.classList.add('open'); }
+    function openModal() {
+      overlay.classList.add('open');
+      var mobileMenu = document.getElementById('mobile-menu');
+      if (mobileMenu.classList.contains('open')) {
+        document.getElementById('hamburger-btn').click();
+      }
+    }
     function closeModal() {
       overlay.classList.remove('open');
       setTimeout(function () {
@@ -1705,6 +1818,7 @@ python server.py
     }
 
     openBtn.addEventListener('click', openModal);
+    openBtnMobile.addEventListener('click', openModal);
     closeBtn.addEventListener('click', closeModal);
     overlay.addEventListener('click', function (e) {
       if (e.target === overlay) closeModal();
