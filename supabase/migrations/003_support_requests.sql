@@ -9,10 +9,5 @@ CREATE TABLE support_requests (
   created_at  TIMESTAMPTZ DEFAULT now()
 );
 
-ALTER TABLE support_requests ENABLE ROW LEVEL SECURITY;
-
--- Allow anonymous inserts from the landing page (anon key)
-CREATE POLICY "allow_anon_insert" ON support_requests
-  FOR INSERT
-  TO anon
-  WITH CHECK (true);
+-- RLS disabled: simple collection table, anon inserts only
+ALTER TABLE support_requests DISABLE ROW LEVEL SECURITY;

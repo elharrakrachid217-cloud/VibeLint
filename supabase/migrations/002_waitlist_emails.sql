@@ -8,10 +8,5 @@ CREATE TABLE waitlist_emails (
   created_at  TIMESTAMPTZ DEFAULT now()
 );
 
-ALTER TABLE waitlist_emails ENABLE ROW LEVEL SECURITY;
-
--- Allow anonymous inserts from the landing page (anon key)
-CREATE POLICY "allow_anon_insert" ON waitlist_emails
-  FOR INSERT
-  TO anon
-  WITH CHECK (true);
+-- RLS disabled: simple collection table, anon inserts only
+ALTER TABLE waitlist_emails DISABLE ROW LEVEL SECURITY;

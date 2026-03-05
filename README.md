@@ -252,7 +252,7 @@ All fix hints for JS/TS use `process.env.VARIABLE_NAME` syntax, not Python's `os
 - [x] Auto-remediation engine
 - [x] JavaScript/TypeScript pattern detection (10 new patterns)
 - [x] SQLite audit logger
-- [ ] Integrate Yelp's detect-secrets for broader coverage
+- [x] Integrate Yelp's detect-secrets for broader coverage
 - [ ] AST-based detection (more accurate than regex)
 - [ ] JavaScript/TypeScript AST parser
 - [ ] Web dashboard (React + FastAPI)
