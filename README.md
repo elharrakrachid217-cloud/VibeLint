@@ -1,10 +1,10 @@
-# 🛡️ VibeLint
+# 🔍 VibeLint
 
 ![Tests](https://img.shields.io/badge/tests-65%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-Every time an AI writes code for you, it might be leaking your API keys, breaking your auth, or opening your database to injection attacks. **VibeLint catches it before it ever touches your files.**
+VibeLint catches security vulnerabilities in AI-generated code before they're written to disk — automatically, locally, for free.
 
 - 🔑 Hard-coded secrets (API keys, tokens, database credentials, `process.env` fallback bypasses, Next.js secrets)
 - 🔐 Insecure authentication patterns (MD5 passwords, JWT without verification, localStorage JWT storage, NextAuth misconfigs)
@@ -17,8 +17,8 @@ Every time an AI writes code for you, it might be leaking your API keys, breakin
 ### 1. Clone and install dependencies
 
 ```bash
-git clone https://github.com/elharrakrachid217-cloud/VibeLint.git
-cd VibeLint
+git clone https://github.com/elharrakrachid217-cloud/vibelint.git
+cd vibelint
 pip install -r requirements.txt
 ```
 
@@ -79,8 +79,8 @@ python server.py
 
 You should see:
 ```
-🛡️  VibeLint MCP Server starting...
-   Waiting for MCP client to connect...
+🔍 VibeLint — AI Code Security Scanner
+   Linting AI-generated code before it hits your files...
 ```
 
 ---
@@ -107,7 +107,7 @@ python install_service.py
 You should see output like:
 
 ```
-🛡️  VibeLint Service Installer
+🔍 VibeLint Service Installer
   Python:  /usr/bin/python3
   Server:  /home/you/vibelint/server.py
 
