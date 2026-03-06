@@ -121,8 +121,10 @@ async def list_tools() -> list[Tool]:
                     "code": {
                         "type": "string",
                         "description": (
-                            "The complete code you are about to write to disk. "
-                            "Include ALL code exactly as you plan to save it — do not omit sections."
+                            "The complete code you are about to write to disk, as a single string. "
+                            "Include ALL code exactly as you plan to save it — do not omit sections. "
+                            "For JSON/YAML/config files: pass the raw file text (e.g. the result of read_file), not a parsed object. "
+                            "If you pass a string, use it as-is; the server also accepts a parsed JSON object and will stringify it."
                         )
                     },
                     "filename": {
@@ -144,13 +146,22 @@ async def list_tools() -> list[Tool]:
     ]
 
 
+def _normalize_code(code) -> str:
+    """Ensure code is always a string. Some MCP clients send JSON files as parsed objects."""
+    if isinstance(code, str):
+        return code
+    if isinstance(code, (dict, list)):
+        return json.dumps(code, indent=2)
+    return str(code) if code is not None else ""
+
+
 @app.call_tool()
 async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     """Route incoming tool calls to the security scanner."""
     if name != "security_check":
         return [TextContent(type="text", text=f"Unknown tool: {name}")]
 
-    code = arguments.get("code", "")
+    code = _normalize_code(arguments.get("code", ""))
     filename = arguments.get("filename", "unknown")
     language = arguments.get("language", "generic")
 

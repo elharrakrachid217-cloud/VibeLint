@@ -82,3 +82,13 @@ python server.py
 ```
 
 If you see `VibeLint — AI Code Security Scanner` — everything is working. You can close it; your IDE starts the server on its own.
+
+---
+
+## Troubleshooting (for AI agents and users)
+
+**"The tool expects a string but gets a JSON object"**  
+When auditing a JSON file (e.g. `package.json`), pass the **raw file content as a string** in the `code` parameter — i.e. the exact text of the file, as returned by `read_file`. Do not pass a parsed object. The server now also accepts a parsed JSON object and will stringify it, but the most reliable approach is to pass the raw string.
+
+**"npx vibelint" or "npm install vibelint" fails**  
+VibeLint is not an npm package. It is an MCP server (Python). Use the `security_check` MCP tool from your IDE, or run the scanner via Python: `python vibelint/scan_project.py` from the project root. There is no CLI like `vibelint security-check`.
