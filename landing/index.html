@@ -656,6 +656,108 @@
       margin-bottom: 48px;
       max-width: 520px;
     }
+    .how-example-intro {
+      margin-top: 48px;
+      margin-bottom: 24px;
+      font-size: 15.5px;
+      color: var(--text-dim);
+      line-height: 1.65;
+      max-width: 640px;
+    }
+    .how-example-intro strong { color: var(--text); font-weight: 600; }
+    .example-audit-card {
+      background: var(--surface);
+      border: 1px solid rgba(245,166,35,0.18);
+      border-radius: 8px;
+      padding: 0 0 24px;
+      margin-bottom: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .example-audit-tabs {
+      display: flex;
+      gap: 2px;
+      padding: 0 28px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .example-tab-btn {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      padding: 12px 18px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .example-tab-btn:hover { color: var(--text); }
+    .example-tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .example-tab-panel {
+      display: none;
+      padding: 0 28px 8px;
+    }
+    .example-tab-panel.active { display: block; }
+    .example-user-block,
+    .example-agent-block {
+      margin-bottom: 18px;
+    }
+    .example-user-block:last-child,
+    .example-agent-block:last-child { margin-bottom: 0; }
+    .example-audit-card .block-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .example-audit-card .example-user-prompt {
+      background: var(--terminal-bg);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+    .example-audit-card .example-agent-content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+    .example-audit-card .example-agent-content .severity-high { color: var(--accent); }
+    .example-audit-card .example-agent-content .severity-moderate { color: var(--text-dim); }
+    .example-audit-card .example-agent-content .example-severity-label {
+      margin-top: 14px;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .example-audit-card .example-agent-content .example-severity-label:first-of-type { margin-top: 8px; }
+    .example-audit-card .example-agent-content .example-severity-item {
+      margin: 0 0 4px 0;
+      padding-left: 0;
+    }
+    .example-audit-card .example-agent-content code {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      background: rgba(255,255,255,0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    @media (max-width: 768px) {
+      .example-audit-card { padding: 0 0 20px; }
+      .example-audit-tabs { padding: 0 18px; margin-bottom: 16px; }
+      .example-tab-panel { padding: 0 18px 4px; }
+      .example-audit-card .example-user-prompt { font-size: 12.5px; padding: 12px 14px; }
+      .how-example-intro { margin-top: 36px; margin-bottom: 20px; font-size: 14.5px; }
+    }
     .ai-prompt-card {
       background: var(--surface);
       border: 1px solid rgba(245,166,35,0.18);
@@ -1243,6 +1345,55 @@
           <p>Clean, secure code lands in your project.</p>
         </div>
       </div>
+
+      <p class="how-example-intro reveal">
+        VibeLint runs automatically on every AI-generated snippet in real time. You can also ask your agent to <strong>scan the entire project or specific files</strong> whenever you want. Examples:
+      </p>
+
+      <div class="example-audit-card reveal">
+        <div class="example-audit-tabs" role="tablist">
+          <button type="button" class="example-tab-btn active" data-example-tab="file" role="tab" aria-selected="true">Audit a file</button>
+          <button type="button" class="example-tab-btn" data-example-tab="project" role="tab" aria-selected="false">Scan project</button>
+        </div>
+        <div class="example-tab-panel active" id="example-panel-file">
+          <div class="example-user-block">
+            <div class="block-label">You</div>
+            <div class="example-user-prompt">Run a VibeLint security audit for package.json</div>
+          </div>
+          <div class="example-agent-block">
+            <div class="block-label">VibeLint</div>
+            <div class="example-agent-content">
+              <p><strong>10 vulnerabilities</strong> (7 high, 3 moderate).</p>
+              <p class="example-severity-label"><span class="severity-high">High:</span></p>
+              <p class="example-severity-item"><code>tar</code> — directory traversal, arbitrary file overwrite (patched in ≥7.5.2).</p>
+              <p class="example-severity-label"><span class="severity-moderate">Moderate:</span></p>
+              <p class="example-severity-item">Next.js — DoS via Image Optimizer, unbounded memory (patched in ≥16.1.5).</p>
+              <p class="example-severity-label">Recommendation:</p>
+              <p class="example-severity-item">Update Next.js and run <code>pnpm audit --fix</code> where applicable.</p>
+            </div>
+          </div>
+        </div>
+        <div class="example-tab-panel" id="example-panel-project">
+          <div class="example-user-block">
+            <div class="block-label">You</div>
+            <div class="example-user-prompt">Use VibeLint to scan the entire project</div>
+          </div>
+          <div class="example-agent-block">
+            <div class="block-label">VibeLint</div>
+            <div class="example-agent-content">
+              <p><strong>4 issues found</strong> across the codebase.</p>
+              <p class="example-severity-label"><span class="severity-high">Critical:</span></p>
+              <p class="example-severity-item">Hard-coded API key in <code>api/config.js</code>;</p>
+              <p class="example-severity-item">SQL injection in <code>db/query.py</code>;</p>
+              <p class="example-severity-item">Weak password hash (MD5) in <code>auth/utils.py</code>.</p>
+              <p class="example-severity-label"><span class="severity-moderate">High:</span></p>
+              <p class="example-severity-item">Command injection in <code>scripts/deploy.sh</code> (<code>shell=True</code> with user input).</p>
+              <p class="example-severity-label">Recommendation:</p>
+              <p class="example-severity-item">Use env vars for secrets, parameterized queries, and bcrypt for passwords.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1733,6 +1884,29 @@ python server.py
       document.getElementById('panel-' + target).classList.add('active');
     });
   });
+
+  /* ═══════════════════════════════════════
+     Example audit card tabs (Audit a file / Scan project)
+     ═══════════════════════════════════════ */
+  (function () {
+    var exampleTabBtns = document.querySelectorAll('.example-tab-btn');
+    var examplePanels = document.querySelectorAll('.example-tab-panel');
+    if (!exampleTabBtns.length || !examplePanels.length) return;
+    exampleTabBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var target = btn.getAttribute('data-example-tab');
+        exampleTabBtns.forEach(function (b) {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        examplePanels.forEach(function (p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+        var panel = document.getElementById('example-panel-' + target);
+        if (panel) panel.classList.add('active');
+      });
+    });
+  })();
 
   /* ═══════════════════════════════════════
      Email Forms → Supabase
