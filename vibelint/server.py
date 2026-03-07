@@ -48,6 +48,7 @@ SUPPORTED_LANGUAGES = [
     "generic",
 ]
 
+# instructions= is the MCP server-level system prompt; IDEs receive this and enforce pre-write security_check.
 app = Server(
     "vibelint",
     instructions=(
@@ -172,9 +173,20 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
 
+def _read_version() -> str:
+    """Read VERSION file in same dir as server.py; fallback to 1.0.0."""
+    try:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "VERSION")
+        with open(path, encoding="utf-8") as f:
+            return f.read().strip() or "1.0.0"
+    except Exception:
+        return "1.0.0"
+
+
 async def main():
     threading.Thread(target=_ping_telemetry, daemon=True).start()
-    print("🔍 VibeLint — AI Code Security Scanner")
+    version = _read_version()
+    print(f"VibeLint {version} — AI Code Security Scanner")
     print("   Linting AI-generated code before it hits your files...\n")
     async with stdio_server() as (read_stream, write_stream):
         await app.run(read_stream, write_stream, app.create_initialization_options())
